@@ -1,0 +1,42 @@
+Examples of use of ./start.sh 
+(arguments are explained only on its first appearance)
+
+
+1) Phases 2
+./start.sh 2 -phase 2
+(run it from scripts folder)
+Runs 2 Servers and a TestServer locally.
+-phase: phase to evaluate. In this case, phase 2
+Dynamism (connections and disconnections) is automatically generated. (We recommend you to start testing your implementation with no disconnections or failures. To do it, set probDisconnect parameter from config.properties file (in scripts folder) to 0)
+
+./start.sh 5 -phase 2 &>../results/F
+Runs 5 Servers and a TestServer locally.
+-phase: phase to evaluate. In this case, phase 2
+&>../results/F: standard and error out is stored in file F (in results folder). To see the content of file F while the application is running execute tail command wit -f option in another terminal (from results folder):
+$ tail -f F
+
+
+2) Phase 3
+ ./start.sh 5 -phase 3 &>../results/F
+Runs 5 Servers and a TestServer locally.
+
+./start.sh 5 -phase 3 --logResults &>../results/F
+Runs 5 Servers and a TestServer locally.
+Results will be stored in a file named as the groupId from config.properties file (on current path).
+--logResults: log results in the following two files:
+	<groupId1>: log of all executions and the result for each of them.
+	<groupId2>.data:
+		in the case that all solutions are equal, contains the final state of data structures.
+		in the case that NOT all solutions are equal, contains the first two found solutions that were different.
+	(<groupXX> is the value of groupId property in config.properties file (scripts folder))
+
+./start.sh 5 -phase 3 --logResults -path ../results &>../results/F
+Runs 5 Servers and a TestServer locally.
+-path <path>: result files are created in ../results folder. If no -path is specified (as in previous example) files will be stored in current folder.
+
+
+3) In phase 4.2 (Evaluation of Raft consensus algorithm), modify parameters of config.properties file (scripts folder) to evaluate Raft consensus algorithm under different conditions and environments.
+Use runN.sh script to run N times start.sh script. Example:
+./runN.sh 10 5 -phase 3 --logResults -path ../results
+runs 10 times start.sh script with the following parameters:
+	./start.sh 5 -phase 3 --logResults -path ../results 
