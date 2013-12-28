@@ -243,16 +243,16 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 					try {
 						RequestVoteResponse rvr = RMIsd.getInstance().requestVote(s.getId(), persistentState.getCurrentTerm(), localHost.getId(),
 								persistentState.getLastLogIndex(), persistentState.getLastLogTerm());
-						// System.out.println("JORDI - createRequestVoteRunnable() - rvr: " + rvr + ", - localhost: " + localHost);
+						System.out.println("JORDI - createRequestVoteRunnable() - term: " + persistentState.getCurrentTerm() + ", rvr: " + rvr + ", - localhost: " + localHost);
 						
 						hasResponded = true;
 						synchronized(rc) {
 							if (rvr != null && rvr.isVoteGranted() && state == RaftState.CANDIDATE) {
 								receivedVotes.add(s);
-								// System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: " + localHost);
+								System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: " + localHost);
 								
 								if ((double) receivedVotes.size() > ((double) numServers)/2) {
-									// System.out.println("JORDI - ************New LEADER**************" + " - term: " + persistentState.getCurrentTerm() + ", - localhost: " + localHost);
+									System.out.println("JORDI - ************New LEADER**************" + " - term: " + persistentState.getCurrentTerm() + ", - localhost: " + localHost);
 									rc.disconnect();
 									leader = localHost.getId();
 									state = RaftState.LEADER;
@@ -303,7 +303,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	}
 	
 	private synchronized void sendHeartBeats() {
-		// System.out.println("JORDI - sendHeartBeats()");
+		System.out.println("JORDI - sendHeartBeats()");
 		leaderHeartbeatTimeoutTimer = new Timer();
 		
 		leaderHeartbeatTimeoutTimer.schedule(new TimerTask() {
