@@ -113,7 +113,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	//
 	
 	Executor executorQueue;
-	AtomicBoolean isleaderAlive;
+	// AtomicBoolean isleaderAlive;
 	static Random rnd = new Random();
 	
 	// =======================
@@ -148,7 +148,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 		executorQueue = Executors.newCachedThreadPool();
 		
 		// Initialize 
-		isleaderAlive = new AtomicBoolean();
+		// isleaderAlive = new AtomicBoolean();
 	}
 
 	// connect
@@ -167,9 +167,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 			@Override
 			public void run() {
 				// System.out.println("JORDI - TimeOut!!!!!!" + ", - localhost: " + localHost);
-				if (!isleaderAlive.getAndSet(false)) {
-					startNewElection();
-				}
+				//if (!isleaderAlive.getAndSet(false)) {
+				startNewElection();
+				//}
 			}
 		// First approximation, must be thought again
 		}, rndTimeout, rndTimeout);
@@ -194,11 +194,11 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	private void setFollowerState(long currentTerm, String newLeader) {
 		state = RaftState.FOLLOWER;
 		persistentState.setCurrentTerm(currentTerm);
-		isleaderAlive.set(true);
+		// isleaderAlive.set(true);
 
 		leader = newLeader;
-		//disconnect();
-		//connect();
+		disconnect();
+		connect();
 	}
 	
 	private long getRandomizedElectionTimeout() {
