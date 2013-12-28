@@ -14,11 +14,11 @@
 
 # killall java
 
-killall -9 rmiregistry
+#killall -9 rmiregistry >& /dev/null
 #rmiregistry &
-(cd ../bin; rmiregistry &)
+#(cd ../bin; rmiregistry &)
 
-sleep 1
+#sleep 1
 
 LOCAL_TEST_SERVER="true"
 PHASE1="false"
@@ -39,7 +39,7 @@ if [ $PHASE1 = "true" ]; then
 else
 	# phase 2 to 4
 	if [ $LOCAL_TEST_SERVER = "true" ]; then
-		java -cp ../bin recipesService.test.server.TestServer $* &
+		java -cp ../bin:../../LSim-libraries/* recipesService.test.server.TestServer $* &
 		sleep 1
 	fi
 
@@ -57,12 +57,15 @@ else
 			# in case you want to run all processes in the same terminal emulator window run:
 			#		java -cp ./bin:../2013p-practica-SD--LSim-lib/* recipesService.Server $1 $2 &
 			#gnome-terminal -x java -cp ../bin:../../LSim-libraries/* recipesService.Server $* &>$FILE &
-			java -classpath ../bin:../../LSim-libraries/* -Djava.rmi.server.codebase=file:../bin/ recipesService.Server $* &
+#			java -classpath ../bin:../../LSim-libraries/* recipesService.Server $* &
+				java -classpath ../bin:../../LSim-libraries/* recipesService.Server $* &
 #				gnome-terminal -x java -classpath ../bin:../../LSim-libraries/* -Djava.rmi.server.codebase=file:../bin/ recipesService.Server $* >$FILE &
 			#gnome-terminal -x java -cp ../bin:../../LSim-libraries/* recipesService.Server $* &
 		else
 			# runs all java processes in the same terminal emulator window
 	#		java -cp ../bin:../../LSim-libraries/* recipesService.Server $* >$FILE &
+
+#			java -classpath ../bin:../../LSim-libraries/* recipesService.Server $* &
 			java -classpath ../bin:../../LSim-libraries/* -Djava.rmi.server.codebase=file:../bin/ recipesService.Server $* &
 			#java -cp ../bin:../../LSim-libraries/* recipesService.Server $* &
 		fi

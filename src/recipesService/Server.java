@@ -31,18 +31,26 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import edu.uoc.dpcs.lsim.LSimFactory;
+import edu.uoc.dpcs.lsim.exceptions.LSimExceptionMessage;
 
-import recipesService.activitySimulation.SimulationData;
+import recipesService.activitySimulation.ActivitySimulation;
 import recipesService.communication.Host;
 import recipesService.communication.Hosts;
-import recipesService.test.server.FinalResult;
+import recipesService.test.server.FinalServerResult;
 import recipesService.test.server.PartialResult;
 import recipesService.test.server.ServerResult;
 import recipesService.test.server.TestServerMessage;
 import recipesService.test.server.TestServerMsgType;
 import util.Serializer;
 
+import lsim.LSimDispatcherHandler;
+import lsim.application.ApplicationManager;
+import lsim.application.handler.DummyHandler;
+import lsim.application.handler.ResultHandler;
+import lsim.worker.LSimWorker;
 import lsimElement.recipesService.WorkerInitHandler;
+import lsimElement.recipesService.WorkerInitHandlerLSim;
 import lsimElement.recipesService.WorkerStartHandler;
 
 
@@ -51,7 +59,7 @@ import lsimElement.recipesService.WorkerStartHandler;
  * February, July 2013
  *
  */
-public class Server {
+public class Server implements ApplicationManager {
 
 	// Data to store recipes and other information
 	private ServerData serverData;
@@ -67,6 +75,7 @@ public class Server {
 	public Server(){
 		
 	}
+	
 	
 	/**
 	 * Method to start a client.
@@ -86,6 +95,7 @@ public class Server {
 		
 		Server server = new Server();
 
+		String groupId = "DefaultId--ChangeIt";
 		//
 		List<String> argsList = Arrays.asList(args);
 		try {
@@ -103,12 +113,20 @@ public class Server {
 				int i = argsList.indexOf("-p");
 				portTestServer = Integer.parseInt(args[i+1]);
 			}
+			
+			groupId = properties.getProperty("groupId");
+			if (argsList.contains("-g")){
+				int i = argsList.indexOf("-g");
+				groupId = args[i+1];
+			}
+			
 		} catch (Exception e){
 			System.err.println("-- Server error ---> "+e.getMessage());			
 			System.err.println("Server error. Incorrect arguments");
 			System.err.println("Args:");
 			System.err.println("\t-p <port of TestServer>: TestServer port");
 			System.err.println("\t-h <IP address of TestServer>: IP Address of TestServer");
+			System.err.println("\t-g <groupId>: groupId");
 			System.exit(1);
 		}
 			// ------------------------------------------------
@@ -116,7 +134,7 @@ public class Server {
 			// ------------------------------------------------
 			
 		// init
-		server.initializeAndStart(portTestServer, properties.getProperty("groupId"));
+		server.initializeAndStart(portTestServer, groupId);
 		// simulated mode
 		try{
 			server.simulatedMode();
@@ -143,12 +161,12 @@ public class Server {
         	//
         	        	
         	out.writeObject(new TestServerMessage(TestServerMsgType.GET_PORT, groupId, null));
-        	
+
         	ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
         	testServerPort = (int) in.readObject();
         	// get initialization information from TestServer
         	// (initialization is done using a WorkerInitHandler to maintain consistency with LSim mode of execution)
-
+ 
     		in.close();
         	out.close();
         	socket.close();
@@ -176,7 +194,7 @@ public class Server {
         	//
         	
         	//
-        	// 3. obtain list of participating servers
+        	// 3. obtain the list of participating servers
         	// 
         	
         	// connect to TestServer
@@ -187,7 +205,7 @@ public class Server {
            	WorkerStartHandler start = new WorkerStartHandler();
         	start.execute(in.readObject());
 
-        	participants = start.getparticipants(localHost);
+        	participants = start.getParticipants(localHost);
 
         	in.close();
         	socket.close();
@@ -241,14 +259,16 @@ public class Server {
 				serverData.getGroupId(),
 				serverData.getServerId(),
 				serverData.getRecipes(),
-				serverData.getLog()
+				serverData.getLog(),
+				serverData.getCurrentTerm(),
+				serverData.getLeaderId()
 				);
 
 		// send final result to localTestServer
 		try {
 			Socket socket = new Socket(testServerAddress, testServerPort);
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            out.writeObject(new FinalResult(sr));
+            out.writeObject(new FinalServerResult(sr));
             
             out.close();
             socket.close();
@@ -275,59 +295,298 @@ public class Server {
 //				System.out.println("[" + serverData.getId() + "]" + serverData.getLog().toString());
 //				System.out.println("[" + serverData.getId() + "]" + "summary: " + serverData.getSummary().toString());
 //				System.out.println("[" + serverData.getId() + "]" + "ack: " + serverData.getAck().toString());
-			} catch (InterruptedException e) {
+			} catch (InterruptedException e) { 
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}while (SimulationData.getInstance().isSimulatingActivity());
+		}while (ActivitySimulation.getInstance().isSimulatingActivity());
+	
 		
 		// ------------------------------------------------
 		// Send partial results
 		// ------------------------------------------------
 
-		int numIterations = SimulationData.getInstance().getExecutionStop() / SimulationData.getInstance().getSetSamplingTime();;
-		for (int iteration = 0; iteration < numIterations; iteration++){
-			// create a result's object that contains the data structures of this server
-			ServerResult sr =
-					new ServerResult(
-							serverData.getGroupId(), 
-							serverData.getServerId(),
-							serverData.getRecipes(),
-							serverData.getLog()
+//		int numIterations = SimulationData.getInstance().getExecutionStop() / SimulationData.getInstance().getSetSamplingTime();;
+//		for (int iteration = 0; iteration < numIterations; iteration++){
+//			// create a result's object that contains the data structures of this server
+//			ServerResult sr =
+//					new ServerResult(
+//							serverData.getGroupId(), 
+//							serverData.getServerId(),
+//							serverData.getRecipes(),
+//							serverData.getLog(),
+//							serverData.getCurrentTerm(),
+//							serverData.getLeaderId()
+//					);
+//
+//			try {
+//				Socket socket = new Socket(testServerAddress, testServerPort);
+//				ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+//				out.writeObject(new PartialResult(iteration, sr));
+//
+//				out.close();
+//				socket.close();
+//			} catch (UnknownHostException e) {
+//				System.err.println("Unknown server: " + testServerAddress);
+//				System.exit(1);
+//			} catch (IOException e) {
+//				System.err.println( "--- Server -- send partial results --->"
+//						+ "Couldn't get I/O for "
+//						+ "the connection to: " + testServerAddress
+//						+ " Server: " + serverData.getServerId()
+//						+ " iteration: " + iteration
+//						);
+//				System.exit(1);
+//			}
+//			try {
+//				Thread.sleep(SimulationData.getInstance().getSetSamplingTime());
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+		 
+		// ------------------------------------------------
+		// End simulation and send final results
+		// ------------------------------------------------
+
+		// waits some time before sending final results
+		try {
+			Thread.sleep((ActivitySimulation.getInstance().getExecutionStop() / 2));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// end and send final results
+		endAndSendResults();
+		
+		// waits some time before finishing
+		try {
+			Thread.sleep((ActivitySimulation.getInstance().getExecutionStop() / 2));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		System.exit(0);
+	}
+
+	
+	// ****************************************************
+	// ****************************************************
+	// ******** LSIM methods
+	// ****************************************************
+	// ****************************************************
+	
+	@Override
+	public boolean isAlive() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start(LSimDispatcherHandler dispatcher) {
+//		LSimFactory.getEvaluatorInstance().setDispatcher(dispatcher);
+		try{
+			process(dispatcher);
+		}catch(RuntimeException e){
+			LSimFactory.getWorkerInstance().logException(
+					new LSimExceptionMessage(
+							"",
+							e,
+							null
+							)
 					);
+		}
+	}
+	
+	private void process(LSimDispatcherHandler dispatcher){
+		LSimWorker lsim = LSimFactory.getWorkerInstance();
+		lsim.setDispatcher(dispatcher);
 
-			try {
-				Socket socket = new Socket(testServerAddress, testServerPort);
-				ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-				out.writeObject(new PartialResult(iteration, sr));
+		// set maximum time (minutes) that is expected the experiment will last
+		lsim.startTimer(30);
+		
+		
+		// ------------------------------------------------
+		// init
+		// ------------------------------------------------
+		
+		WorkerInitHandlerLSim init = new WorkerInitHandlerLSim();
+//		WorkerInitHandler init = new WorkerInitHandler();
+		lsim.init(init);
 
-				out.close();
-				socket.close();
-			} catch (UnknownHostException e) {
-				System.err.println("Unknown server: " + testServerAddress);
-				System.exit(1);
-			} catch (IOException e) {
-				System.err.println( "--- Server -- send partial results --->"
-						+ "Couldn't get I/O for "
-						+ "the connection to: " + testServerAddress
-						+ " Server: " + serverData.getServerId()
-						+ " iteration: " + iteration
-						);
-				System.exit(1);
-			}
+		// getting parameters
+		serverData = init.getServerData();
+		Host localHost = init.getLocalHost();
+		LSimFactory.getWorkerInstance().log(
+				"",
+				"--- **** ---> worker ident: " + lsim.getIdent() +
+					'\n' +
+					"--- **** ---> lsim.getLSimElementAddress(\"Wserver0\")"+lsim.getLSimElementAddress("Wserver0") +
+					'\n' +
+					"--- **** ---> lsim.getLSimElementAddress(lsim.getIdent())"+lsim.getLSimElementAddress(lsim.getIdent()) +
+					'\n' +
+					"--- **** ---> lsim.getLSimElementAddress(lsim.getIdent())"+lsim.getLSimElementAddress("server")
+				);
+//		System.out.println("--- **** ---> worker ident: " + lsim.getIdent());
+//		System.out.println("--- **** ---> lsim.getLSimElementAddress(\"Wapplication0\")"+lsim.getLSimElementAddress("Wapplication0"));
+//		System.out.println("--- **** ---> lsim.getLSimElementAddress(lsim.getIdent())"+lsim.getLSimElementAddress(lsim.getIdent()));
+//		System.out.println("--- **** ---> lsim.getLSimElementAddress(lsim.getIdent())"+lsim.getLSimElementAddress("server"));
+
+	
+		// ------------------------------------------------
+		// start
+		// ------------------------------------------------
+		
+		WorkerStartHandler start = new WorkerStartHandler();
+		lsim.start(start);
+		
+		// get participating hosts
+		Hosts participants = start.getParticipants(localHost);
+		
+		LSimFactory.getWorkerInstance().log(
+				"",
+				"-- *** --> Server -- local host: "+ localHost +
+					'\n' +
+					"-- *** --> Server -- participants: "+participants
+				);
+//		System.out.println("-- *** --> Server -- local host: "+ localHost);
+//		System.out.println("-- *** --> Server -- participants: "+participants);
+		
+		// start
+		serverData.start(participants);
+			
+		
+		// ----------------------------------------------- -
+		// Recipes Service
+		// ------------------------------------------------
+		
+		// sleep and print data structures until the end of the simulation 
+		do{
 			try {
-				Thread.sleep(SimulationData.getInstance().getSetSamplingTime());
+				Thread.sleep(500); //120000
+//				Thread.sleep(60000); //120000
+//				System.out.println(serverData.getRecipes().toString());
+//				System.out.println(serverData.getLog().toString());
+//				System.out.println("Summary: " + serverData.getSummary().toString());
+//				System.out.println("Ack: " + serverData.getAck().toString());
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}while (ActivitySimulation.getInstance().isSimulatingActivity());
+
+		
+		// ------------------------------------------------
+		// Send partial results
+		// ------------------------------------------------
+
+//		int numIterations = SimulationData.getInstance().getExecutionStop() / SimulationData.getInstance().getSetSamplingTime();
+//		for (int iteration = 0; iteration < numIterations; iteration++){
+////			serverData.updateLocalSummaryWithCurrentTimestamp();
+//			// create a result's object that contains the data structures of this server
+//			ServerResult sr = new ServerResult(
+//					serverData.getGroupId(),
+//					serverData.getId(),
+//					serverData.getRecipes()
+//					);
+//
+//			try {
+//				lsim.sendResult(new ResultHandler(Serializer.serialize(new PartialResult(iteration, sr))));
+//			} catch (IOException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//
+//			try {
+//				Thread.sleep(SimulationData.getInstance().getSetSamplingTime());
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//		
+//		// print final data structures of this server
+//		LSimFactory.getWorkerInstance().log(
+//				"",
+//				"Final Result " +
+//					'\n' +
+//					"============ " +
+//					'\n' +
+//					"-- *** --> Server: "+ serverData.getId() +
+//					'\n' +
+//					serverData.getRecipes().toString() +
+//					'\n' +
+//					serverData.getLog().toString() +
+//					'\n' +
+//					"Summary: " + serverData.getSummary().toString() +
+//					'\n' +
+//					"Ack: " + serverData.getAck().toString()
+//				);
+////		System.out.println("Final Result ");
+////		System.out.println("============ ");
+////		System.out.println(serverData.getRecipes().toString());
+////		System.out.println(serverData.getLog().toString());
+////		System.out.println("Summary: " + serverData.getSummary().toString());
+////		System.out.println("Ack: " + serverData.getAck().toString());
+		
+		
+		// ------------------------------------------------
+		// send final results
+		// ------------------------------------------------
+		
+		// waits some time before sending final results
+		try {
+			Thread.sleep((ActivitySimulation.getInstance().getExecutionStop() / 2) + 3000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// create a result's object that contains the data structures of this server
+		ServerResult sr = new ServerResult(
+				serverData.getGroupId(),
+				serverData.getServerId(),
+				serverData.getRecipes(),
+				serverData.getLog(),
+				serverData.getCurrentTerm(),
+				serverData.getLeaderId()
+				);
+		
+		// send result's object to the evaluator
+		try {
+			lsim.sendResult(new ResultHandler(Serializer.serialize(new FinalServerResult(sr))));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+//			 e.printStackTrace();
+			lsim.logException(new LSimExceptionMessage("", e, null));
 		}
 		
+		// waits some time before finishing
+		try {
+			Thread.sleep((ActivitySimulation.getInstance().getExecutionStop() / 2));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		// ------------------------------------------------
-		// End simulation and send final results
+		// stop
 		// ------------------------------------------------
-		endAndSendResults();
 		
-		System.exit(0);
+		lsim.stop(new DummyHandler());
+	}
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
 	}
 }

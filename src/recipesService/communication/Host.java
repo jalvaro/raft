@@ -48,11 +48,11 @@ public class Host implements Serializable{
 		this.port = port;
 		this.id = id;
 	}
-	public Host(String id){
-		address = null;
-		port = -1;
-		this.id = id;
-	}
+//	public Host(String id){
+//		address = null;
+//		port = -1;
+//		this.id = id;
+//	}
 	public String getId() {
 		return id;
 	}
@@ -70,6 +70,7 @@ public class Host implements Serializable{
 			return "[" + address + "," + port + "," + id + "]";
 		}
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

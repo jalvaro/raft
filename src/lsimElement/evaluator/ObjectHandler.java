@@ -18,40 +18,27 @@
 * along with this code.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package communication.rmi;
+package lsimElement.evaluator;
+
+import lsim.application.handler.Handler;
 
 /**
- * Data regarding the package to communicate using rmi
  * @author Joan-Manuel Marques
- * July 2013
+ * December 2012
  *
  */
-public class CommunicationData {
-	private static CommunicationData data;
-
-	private int registryPort = 1099; // default value
-	private String registryHost = "localhost"; // default value
+public class ObjectHandler<E> implements Handler {
 	
-	public static CommunicationData getInstance(){
-		if (data == null){
-			data = new CommunicationData();
-		}
-		return data;
+	private E value;
+
+	@Override
+	public Object execute(Object obj) {
+		value = (E) obj;		
+		return value;
 	}
 
-	public int getRegistryPort() {
-		return registryPort;
+	public E getValue() {
+		return value;
 	}
 
-	public void setRegistryPort(int registryPort) {
-		this.registryPort = registryPort;
-	}
-
-	public String getRegistryHost() {
-		return registryHost;
-	}
-
-	public void setRegistryHost(String registryHost) {
-		this.registryHost = registryHost;
-	}
 }

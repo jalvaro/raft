@@ -23,6 +23,7 @@ package recipesService.data;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -54,6 +55,9 @@ public class Recipes implements Serializable{
 	}
 	public boolean contains(String recipeTitle){
 		return recipes.containsKey(recipeTitle);
+	}
+	public Set<String> getTitles() {
+		return recipes.keySet();
 	}
 	
 	public synchronized String getRandomRecipeTitle(){

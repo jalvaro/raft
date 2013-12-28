@@ -88,12 +88,6 @@ public class TestServer {
 				path = args[i+1];
 			}
 			
-			// path to directory where store results (if --logResults is set)
-			if (argsList.contains("-phase")){
-				int i = argsList.indexOf("-phase");
-				phase = args[i+1];
-			}
-
 			// --forever: to run TestServer forever (untill it is killed)
 			forever = argsList.contains("--forever");
 			
@@ -157,7 +151,7 @@ public class TestServer {
 					ServerSocket acceptServerSocket = testServer.servicePublished(port);
 					
 					// create a thread of TestServer to deal with this experiment
-					TestServerExperimentManager testServerExperimentManager = new TestServerExperimentManager(phase);
+					TestServerExperimentManager testServerExperimentManager = new TestServerExperimentManager(forever, listeningPort); // if server runs forever it supposes that executes student's and teacher's implementation together
 					testServerExperimentManager.setServerSocket(acceptServerSocket);
 					testServerExperimentManager.setExperimentData(msg.getExperimentData());
 					testServerExperimentManager.setLogResults(logResults);
@@ -187,6 +181,7 @@ public class TestServer {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+//		} while (forever);
 		} while (!end);
 }
 	

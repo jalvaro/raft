@@ -108,4 +108,12 @@ public class Hosts {
 	public String toString(){
 		return localHost + "-" + listHosts.toString();
 	}
+	public Host getHost(String id){
+		for (Host host : listHosts){
+			if (id.equals(host.getId())){
+				return host;
+			}
+		}
+		return null;
+	}
 }

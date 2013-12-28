@@ -20,6 +20,8 @@
 
 package communication.rmi;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
@@ -32,7 +34,8 @@ import java.util.List;
 import communication.DSException;
 
 import recipesService.ServerData;
-import recipesService.activitySimulation.SimulationData;
+import recipesService.activitySimulation.ActivitySimulation;
+import recipesService.communication.Host;
 import recipesService.raft.Raft;
 import recipesService.raft.dataStructures.LogEntry;
 import recipesService.raftRPC.AppendEntriesResponse;
@@ -48,7 +51,7 @@ import recipesService.raftRPC.RequestVoteResponse;
 public class RMIsd {
 	private static RMIsd rmiSD;
 
-	private int registryPort = 1099; // default value 1099			// TODO: que siguin paràmetres
+	private static int registryPort = 1099; // default value 1099			// TODO: que siguin paràmetres
 	private String registryHost = "localhost"; // default value		// TODO: que siguin paràmetres
 	
 	public static RMIsd getInstance(){
@@ -58,17 +61,39 @@ public class RMIsd {
 		return rmiSD;
 	}
 
+	public int createRMIregistry(String address){
+		return createRMIregistry(address, registryPort);
+	}
+	
+	public int createRMIregistry(String address, int port){
+		registryHost = address;
+		boolean end = false;
+		do {
+			try {
+				LocateRegistry.createRegistry(registryPort);
+				end = true;
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+				registryPort++;
+			}
+		}while (!end);
+
+		return registryPort;
+	}
+	
 	//
 	// bind and unbind a remote reference (a host interface) 
 	//
 	
 	public void connect(ServerData serverData) {
-		if (SimulationData.getInstance().isConnected()){
+		if (ActivitySimulation.getInstance().isConnected()){
 			return;
 		}
 //		System.out.println("|||||||||||||||||||||||||||||| connect: "+serverData.getId());
 		
 		// connect Raft API
+
 		Raft stub;
 		try {
 			stub = (Raft) UnicastRemoteObject.exportObject(serverData, 0);
@@ -120,7 +145,7 @@ public class RMIsd {
 	}
 
 	public void disconnect(ServerData serverData) {
-		if (!SimulationData.getInstance().isConnected()){
+		if (!ActivitySimulation.getInstance().isConnected()){
 			return;
 		}
 
@@ -186,7 +211,7 @@ public class RMIsd {
 	// **** RAFT
 	// *************
 	public RequestVoteResponse requestVote(
-			String destination,
+			Host destination,
 			long term,
 			String id,
 			int lastLogIndex,
@@ -203,20 +228,20 @@ public class RMIsd {
 		}
 
 		Registry registry;
-    	if (!SimulationData.getInstance().isConnected()){
+    	if (!ActivitySimulation.getInstance().isConnected()){
     		throw new DSException("Sender is disconnected: Host tried to send a requestVote RPC while the testing environment simulates it is failed");
     	}
 		try {
-			registry = LocateRegistry.getRegistry(registryHost,	registryPort);
+			registry = LocateRegistry.getRegistry(destination.getAddress(),	destination.getPort());
 			// RPC call
 			// host.getAddress(), host.getPort());
 			Raft stub = (Raft) registry.lookup(
 					"rmi://"
-							+ CommunicationData.getInstance().getRegistryHost()
+							+ destination.getAddress()
 							+ ':'
-							+ CommunicationData.getInstance().getRegistryPort()
+							+ destination.getPort()
 							+ "/Raft-"
-							+ destination
+							+ destination.getId()
 					);
 			return stub.requestVote(term, id, lastLogIndex, lastLogTerm);
 
@@ -229,7 +254,7 @@ public class RMIsd {
 	
 	
 	public AppendEntriesResponse appendEntries (
-			String destination,
+			Host destination,
 			long term,
 			String leaderId,
 			int prevLogIndex,
@@ -238,7 +263,7 @@ public class RMIsd {
 			int commitIndex
 			) throws Exception{
 		
-    	if (!SimulationData.getInstance().isConnected()){
+    	if (!ActivitySimulation.getInstance().isConnected()){
     		throw new DSException("Sender is disconnected: Host tried to send a appendEntries RPC while the testing environment simulates it is failed");
     	}
 
@@ -253,14 +278,14 @@ public class RMIsd {
 
 		Registry registry;
 		try {
-			registry = LocateRegistry.getRegistry(registryHost,	registryPort);
+			registry = LocateRegistry.getRegistry(destination.getAddress(),	destination.getPort());
 			Raft stub = (Raft) registry.lookup(
 					"rmi://"
-							+ CommunicationData.getInstance().getRegistryHost()
+							+ destination.getAddress()
 							+ ':'
-							+ CommunicationData.getInstance().getRegistryPort()
+							+ destination.getPort()
 							+ "/Raft-"
-							+ destination
+							+ destination.getId()
 					);
 			return stub.appendEntries (term, leaderId, prevLogIndex, prevLogTerm, entries, commitIndex);
 		} catch (RemoteException | NotBoundException e) {

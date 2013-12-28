@@ -21,8 +21,6 @@
 package recipesService.test.server;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -32,15 +30,22 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
+import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
 
 import recipesService.communication.Host;
 import recipesService.communication.Hosts;
+import recipesService.data.AddOperation;
+import recipesService.data.OperationType;
 import recipesService.data.Recipes;
-import recipesService.test.client.Client;
+import recipesService.raft.dataStructures.LogEntry;
+import recipesService.test.client.Clients;
 import util.Serializer;
 
 /**
@@ -54,10 +59,19 @@ public class TestServerExperimentManager extends Thread{
 	private ExperimentData experimentData;
 	private boolean logResults;
 	private String path;
-	private String phase;
+
+	// to run student and teacher solutions together
+	final int NUM_TEACHER_SERVERS = 2;
+	final int NUM_STUDENT_SERVERS = 3;
+	private boolean instantiateServers;
+	private int testServerPort= 20000;
 	
-	public TestServerExperimentManager(String phase){
-		this.phase = phase;
+	//
+	// START
+	//
+	public TestServerExperimentManager(boolean instantiateServers, int testServerPort){
+		this.instantiateServers = instantiateServers;
+		this.testServerPort = testServerPort;
 	}
 	
 	public void setServerSocket(ServerSocket serverSocket) {
@@ -91,15 +105,59 @@ public class TestServerExperimentManager extends Thread{
 		ObjectInputStream in = null;
 		ObjectOutputStream out = null;
 
-		List<String> params = experimentData.getParams();
+		final List<String> params = experimentData.getParams();
 		System.out.println("TestServerExperimentManager -- params: "+params);
 
 		int numNodes = experimentData.getNumNodes();
-		int numRequiredResults = ( (numNodes * experimentData.getPercentageRequiredResults()) / 100 + 1 );
-		if (experimentData.getPercentageRequiredResults() == 100){
-			numRequiredResults = numNodes;
+		String phase = (String) params.get(13);
+		
+		// in case of running together student's implementation and teacher's implementation,
+		// check if the number of student's implementation is NUM_STUDENT_SERVERS 
+		String groupId = params.get(0);
+		if (instantiateServers){
+			if (numNodes != NUM_STUDENT_SERVERS){
+				FileWriter outputStream = null;
+				String result = "Error. The number of servers running the student's implementation should be: "+NUM_STUDENT_SERVERS;
+				if (logResults){
+					File file = new File(path, groupId);
+					try {
+						//				outputStream = new FileWriter(results.get(0).getGroupId(),true);
+						outputStream = new FileWriter(file,true);
+						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+						outputStream.append(groupId
+								+ '\t' + (dateFormat.format(new java.util.Date())).toString() 
+								+ '\t' + result
+								+ '\n');
+						outputStream.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally{
+						if (outputStream != null) {
+							try {
+								outputStream.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+				System.out.println("\n\n");
+				System.out.println("*********** "+result);
+				System.out.println("\n\n");
+				return;
+			}
+			numNodes += NUM_TEACHER_SERVERS;
+
+			// Execute script that runs NUM_TEACHER_SERVERS
+			try {
+				Runtime.getRuntime().exec("./startServers.sh "+NUM_TEACHER_SERVERS+" -p "+testServerPort+" -g "+params.get(0));
+//				Runtime.getRuntime().exec("/home/marques/eclipseProjects/SD/2013t-SD/2013t/scripts/startServers.sh "+NUM_TEACHER_SERVERS+" -p "+20000);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 		}
 		
+		// send params to student's implementation and receive its id
 		for (int i = 0 ; i<numNodes ; i++){
 			try {
 				serverSocket.setSoTimeout(45000);// sets a timeout. A read() call on the InputStream associated with this Socket will block for only this amount of time (milliseconds) 
@@ -134,7 +192,6 @@ public class TestServerExperimentManager extends Thread{
 								+ '\n');
 						outputStream.close();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} 
 				}
@@ -143,11 +200,16 @@ public class TestServerExperimentManager extends Thread{
 				System.err.println("TestServerExperimentManager -- Accept failed.");
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 
+		// Calculate the number of required results
+		int numRequiredResults = ( (numNodes * experimentData.getPercentageRequiredResults()) / 100 + 1 );
+		if (experimentData.getPercentageRequiredResults() == 100){
+			numRequiredResults = numNodes;
+		}
+		
 		// sends the list of participating servers to servers
 		for (int i = 0 ; i<numNodes ; i++){
 			try {
@@ -158,7 +220,7 @@ public class TestServerExperimentManager extends Thread{
 				out.close();
 				clientSocket.close();
 			} catch (SocketTimeoutException acceptException) {
-				System.out.println("Less than "+ numNodes+" Serveres asked the list of participants");
+				System.out.println("Less than "+ numNodes+" Servers asked the list of participants");
 				if (logResults){
 					File file = new File(path, experimentData.getGroupId());
 					try {
@@ -171,7 +233,6 @@ public class TestServerExperimentManager extends Thread{
 								+ '\n');
 						outputStream.close();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} 
 				}
@@ -185,30 +246,23 @@ public class TestServerExperimentManager extends Thread{
 		// ************
 		// ** Activity Generation
 		// ************
-		
-		// creates N client applications that generate activity 
 
-		// properties
-		Properties properties = new Properties();
-
+		// Recipes
 		Recipes recipesSent = new Recipes(); // contains all recipes issued and sent to a RaftCluster
 		Recipes recipes = new Recipes(); // contains all recipes committed by the raft cluster 
 		
-		//load a properties file
-		try {
-			properties.load(new FileInputStream("config.properties"));
-			for (int i=1; i<=Integer.parseInt(properties.getProperty("numClients"));i++){
-				(new Client(i, hosts, recipesSent, recipes, phase)).start();
-			}
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		
+		// Create and run clients
+		String recipeSurviveTitle = Math.abs(new Random().nextInt(10000)) + "-";
+		String recipeDeadTitle    = Math.abs(new Random().nextInt(10000)) + "-";
+		Clients clients = new Clients();
+		clients.setDataAndRunClients(
+				recipesSent,
+				recipes,
+				params,
+				hosts,
+				recipeSurviveTitle,
+				recipeDeadTitle
+				);
 		
 		// ************
 		// ** Results
@@ -219,8 +273,9 @@ public class TestServerExperimentManager extends Thread{
 		boolean end = false;
 		HashMap<Integer, List<ServerResult>> allResults = new HashMap<Integer, List<ServerResult>>();
 		
+		
 		try {
-			serverSocket.setSoTimeout(3600000);// sets a timeout. A read() call on the InputStream associated with this Socket will block for only this amount of time (milliseconds) 
+			serverSocket.setSoTimeout(900000);// sets a timeout. A read() call on the InputStream associated with this Socket will block for only this amount of time (milliseconds) 
 			do{
 				clientSocket = serverSocket.accept();
 				in = new ObjectInputStream(clientSocket.getInputStream());
@@ -243,13 +298,13 @@ public class TestServerExperimentManager extends Thread{
 					case FINAL:
 						finalResults.add(result.getServerResult());
 						System.out.println("##### Final result from server: " + result.getServerResult().getHostId());
-						if (finalResults.size() == numRequiredResults){
+						if (finalResults.size() == numNodes){
+//						if (finalResults.size() == numRequiredResults){
 							end = true;
 						}
 						break;
 					}
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				in.close();
@@ -262,17 +317,58 @@ public class TestServerExperimentManager extends Thread{
 			e.printStackTrace();
 		}
 		
+		
 		if (finalResults.size() < numRequiredResults){
-			System.err.println("Unable to evaluate results due to: Not enough Servers where connected at the moment of finishing the Activity Simulation phase.");
-			System.err.println("Recieved Results: "+finalResults.size());
-			System.err.println("numRequiredResults: "+numRequiredResults);
-			System.exit(30);
+			String result = "Unable to evaluate results due to: Not enough Servers where connected at the moment of finishing the Activity Simulation phase."
+					+ "\tRecieved Results: "+finalResults.size()
+					+ "\tnumRequiredResults: "+numRequiredResults
+					;
+			if (logResults){
+				File file = new File(path, groupId);
+				FileWriter outputStream = null;
+				try {
+					//				outputStream = new FileWriter(results.get(0).getGroupId()+".data",true);
+					outputStream = new FileWriter(file,true);
+					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+					outputStream.append(groupId
+							+ '\t' + (dateFormat.format(new java.util.Date())).toString() 
+							+ '\t' + result
+							+ '\n');
+					outputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} 
+			}
+			return;
+//			System.exit(30);
 		}
 
+		if (instantiateServers && !resultsFromTwoDifferentServers(finalResults)){
+			String result = "Unable to evaluate results due to: Only results from student's server. Evalution requires receiving results from teacher's Server. Check config.properties of Teacher's implementation to be sure that groupId field is the teacher's Id"
+					;
+			if (logResults){
+				File file = new File(path, groupId);
+				FileWriter outputStream = null;
+				try {
+					//				outputStream = new FileWriter(results.get(0).getGroupId()+".data",true);
+					outputStream = new FileWriter(file,true);
+					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+					outputStream.append(groupId
+							+ '\t' + (dateFormat.format(new java.util.Date())).toString() 
+							+ '\t' + result
+							+ '\n');
+					outputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} 
+			}
+			System.err.println(">>>>>>>>>>>>>>>>>>>>>>> "+result);
+			return;
+		}
+			
 		try {
 			serverSocket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -290,7 +386,7 @@ public class TestServerExperimentManager extends Thread{
 
 		FileWriter outputStream = null;
 		if (logResults){
-			File file = new File(path, finalResults.get(0).getGroupId()+".data");
+			File file = new File(path, groupId+".data");
 			try {
 				//				outputStream = new FileWriter(results.get(0).getGroupId()+".data",true);
 				outputStream = new FileWriter(file,true);
@@ -300,14 +396,13 @@ public class TestServerExperimentManager extends Thread{
 						);
 				outputStream.append("\n----- [" + finalResults.get(0).getHostId() + "] Result:\n " + finalResults.get(0));
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 
 		}
 		equal = true;
 		for (int i = 1 ; i<finalResults.size() && equal; i++){
 			equal = equal && finalResults.get(0).equals(finalResults.get(i));
-//			if (!equal){
+			if (!equal){
 				System.out.println("##### ["+finalResults.get(i).getHostId()+"] Result:\n " + finalResults.get(i));
 				if (logResults){
 					try {
@@ -316,31 +411,12 @@ public class TestServerExperimentManager extends Thread{
 								+ '\t' + (dateFormat.format(new java.util.Date())).toString());
 						outputStream.append("\n----- ["+finalResults.get(i).getHostId()+"] Result:\n " + finalResults.get(i));
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-//			}
-		}
-
-		if (logResults){
-			try {
-				outputStream.append("================================================\n");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally{
-				if (outputStream != null) {
-					try {
-						outputStream.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 			}
 		}
-		
+
 		// calculate in which iteration nodes converged
 		boolean converged = false;
 		int convergenceIteration = -1;
@@ -355,60 +431,146 @@ public class TestServerExperimentManager extends Thread{
 			}
 		}
 
+		if (phase.equals("4.1")) {
+			int deadCount = 0;
+			int liveCount = 0;
+			for (ServerResult serverResult : finalResults) {
+				undoLastAdds(serverResult);
+				deadCount = deadCount + countRecipes(serverResult, recipeDeadTitle);
+				liveCount = liveCount + countRecipes(serverResult, recipeSurviveTitle);
+			}
+			equal = equal && (deadCount == 0) && (liveCount > 0); 
+//			System.out.println("\n\t" + 
+//					"Having "+deadCount+" dead results <<< "+
+//					(finalResults.size() * clients.getCount()) + " dead-recipes:" + recipeDeadTitle + "*");			
+//			result += "\n\t" + 
+//					"Having "+deadCount+" dead results <<< "+
+//					(finalResults.size() * clients.getCount()) + " dead-recipes:" + recipeDeadTitle + "*";
+			if (logResults){
+				try {
+					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+					outputStream.append("\n\n##### Phase 4.1" 
+//							+ finalResults.get(i).getGroupId() 
+							+ '\t' + (dateFormat.format(new java.util.Date())).toString()
+							);
+					if (deadCount == 0 && liveCount > 0){
+						outputStream.append('\n' + "Phase 4.1 is correct (live: "+liveCount+")");
+					} else {
+						outputStream.append(
+							'\n' + "ERROR in Phase 4.1: Raft re-executed an operation multiple times"
+							+ '\n' + "i.e. it has received:"
+							+ '\n' + '\t' + "(a) AddOperation(recipeN, timestampX)"
+							+ '\n' + '\t' + "(b) RemoveOperation(recipeN.title,timestampY)"
+							+ '\n' + '\t' + "(c) AddOperation(recipeN, timestampX)"
+							+ '\n' + "It shouldn't have executed the second AddOperation(recipeN, timestampX)"
+							);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		if (logResults){
+			try {
+				outputStream.append("\n================================================\n");
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally{
+				if (outputStream != null) {
+					try { outputStream.close(); }
+					catch (IOException e) { e.printStackTrace(); }
+				}
+			}
+		}
+		
 		// write final result
 		System.out.println("\n\n");
-		String result;
+		String result = "phase " + phase;
 		if (equal){
-			result = "Results are equal";
+			result += '\t' + "Correct";
 			if (convergenceIteration == -1){
-				result += "\t Nodes converged at the last iteration ";
+				//				result += '\n' + '\t' + "Nodes converged at the last iteration ";
 			} else{
-				result += "\t Nodes converged at the iteration " + convergenceIteration;
+				//				result += '\n' + '\t' + "Nodes converged at the iteration " + convergenceIteration;
 			}
 		} else{
-			result = "Results are NOT equal";
+			result += '\t' + "Servers DON'T have coherent data";
 		}
-		System.out.println(result);
 
+		
+		System.out.println(result);
+		
 		System.out.println("\n\n");
 		System.out.println("================================================");
 		System.out.println("\n\n");
 
 		if (logResults){
-			File file = new File(path, finalResults.get(0).getGroupId());
+			File file = new File(path, groupId);
 			try {
 				//				outputStream = new FileWriter(results.get(0).getGroupId(),true);
 				outputStream = new FileWriter(file,true);
 				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-				outputStream.append(finalResults.get(0).getGroupId()
+				outputStream.append(groupId
 						+ '\t' + (dateFormat.format(new java.util.Date())).toString() 
 						+ '\t' + result
 						+ '\n');
 				outputStream.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally{
 				if (outputStream != null) {
-					try {
-						outputStream.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					try { outputStream.close();	} 
+					catch (IOException e) {	e.printStackTrace(); }
 				}
 			}
 		}
+		
 		System.out.println("\n\n");
 		System.out.println("*********** num received results: "+finalResults.size());
 		System.out.println("*********** % received results: "+(finalResults.size()*100)/numNodes);
 		System.out.println("*********** minimal required number of results: "+numRequiredResults);
 		System.out.println("\n\n");
 
-		if (equal){
-			System.exit(10);
-		} else{
-			System.exit(20);
+//		if (equal){
+//			System.exit(10);
+//		} else{
+//			System.exit(20);
+//		}
+	}
+
+	private static void undoLastAdds(ServerResult serverResult) {
+		Set<String> seenClients = new HashSet<>();
+		List<LogEntry> reverseLog = new ArrayList<LogEntry>(serverResult.getLog()); Collections.reverse(reverseLog);
+		for (LogEntry entry : reverseLog) {
+			String clientId = entry.getCommand().getTimestamp().getHostId();
+			if (!seenClients.contains(clientId)) {
+				seenClients.add(clientId);
+				if (entry.getCommand().getType().equals(OperationType.ADD)) {
+					String recipeTitle = ((AddOperation)entry.getCommand()).getRecipe().getTitle();
+					serverResult.getRecipes().remove(recipeTitle);
+					//System.err.println("UNDO::"+serverResult.getHostId()+"::"+'_'+"::"+recipeTitle);
+				}
+			}
 		}
+	}
+	private static int countRecipes(ServerResult serverResult, String recipeTitleHead) {
+		int count = 0;
+		for (String title : serverResult.getRecipes().getTitles()) {			
+			if (title.startsWith(recipeTitleHead)) {
+				count = count + 1;
+			}
+		}
+		return count;
+	}
+
+
+	private boolean resultsFromTwoDifferentServers(List<ServerResult> finalresults){
+		boolean resultsFromTwoDifferentServers = false;
+		String oneGroupId = finalresults.get(0).getGroupId();
+		for (int i = 1; (i < finalresults.size()) && !resultsFromTwoDifferentServers; i++){
+			resultsFromTwoDifferentServers = ! oneGroupId.equals(finalresults.get(i).getGroupId());
+		}
+		return resultsFromTwoDifferentServers;
 	}
 }

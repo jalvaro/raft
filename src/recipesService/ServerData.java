@@ -20,18 +20,12 @@
 
 package recipesService;
 
-import java.rmi.RemoteException;
 import java.util.List;
 
-import recipesService.activitySimulation.SimulationData;
+import recipesService.activitySimulation.ActivitySimulation;
 import recipesService.communication.Host;
 import recipesService.communication.Hosts;
-import recipesService.data.Operation;
 import recipesService.raft.RaftConsensus;
-import recipesService.raft.dataStructures.LogEntry;
-import recipesService.raftRPC.AppendEntriesResponse;
-import recipesService.raftRPC.RequestVoteResponse;
-import recipesService.test.client.RequestResponse;
 
 /**
  * @author Joan-Manuel Marques
@@ -72,8 +66,8 @@ public class ServerData extends RaftConsensus {
 		//	* start activity simulation timers
 		// 	* set connected state on simulation data
 		//  * connect Server and raftConsensus
-		SimulationData.getInstance().startSimulation(this);
-		SimulationData.getInstance().connect(); // this call includes starting raft consensus
+		ActivitySimulation.getInstance().startSimulation(this);
+		ActivitySimulation.getInstance().connect(); // this call includes starting raft consensus
 	}
 
 	public boolean end(){
@@ -89,5 +83,15 @@ public class ServerData extends RaftConsensus {
 	// ******************************
 	public String getGroupId(){
 		return this.groupId;
+	}
+
+	@Override
+	public long getCurrentTerm() {
+		return super.getCurrentTerm();
+	}
+
+	@Override
+	public String getLeaderId() {
+		return super.getLeaderId();
 	}
 }

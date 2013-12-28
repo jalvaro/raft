@@ -40,12 +40,16 @@ public class ServerResult implements Serializable{
 	private String hostId;
 	private Recipes recipes;
 	private List<LogEntry> log;
+	private long term;
+	private String leaderId;	
 	
-	public ServerResult (String groupId, String hostId, Recipes recipes, List<LogEntry> log){
+	public ServerResult (String groupId, String hostId, Recipes recipes, List<LogEntry> log, long term, String leaderId){
 		this.groupId = groupId;
 		this.hostId = hostId;
 		this.recipes = recipes.clone();
 		this.log = (List<LogEntry>) ((Vector<LogEntry>) log).clone();
+		this.term = term;
+		this.leaderId = leaderId;
 	}
 	
 	public String getGroupId(){
@@ -57,15 +61,18 @@ public class ServerResult implements Serializable{
 	public Recipes getRecipes() {
 		return recipes;
 	}
+	public List<LogEntry> getLog() {
+		return log;
+	}
 	
-//	public String toString(){
-//		return "Group id: " + groupId + "\nNode id: " + hostId + "\nRecipes: " + recipes.toString();
-//	}
-
 	@Override
 	public String toString() {
-		return "ServerResult [\ngroupId=" + groupId + "\nhostId=" + hostId
-				+ "\nrecipes=" + recipes + "\nlog=" + log + "\n]";
+		return "ServerResult [\ngroupId=" + groupId + "\n"+
+				"hostId=" + hostId	+ "\n"+
+				"recipes=" + recipes + "\n"+
+				"log=" + log + "\n"+
+				"term=" + term + "\n"+
+				"leaderId=" + leaderId + "]";
 	}
 
 
@@ -88,10 +95,16 @@ public class ServerResult implements Serializable{
 				return false;
 		} else if (!recipes.equals(other.recipes))
 			return false;
+		if (term != other.term)
+			return false;
+		if (leaderId == null) {
+			if (other.leaderId != null)
+				return false;
+		} else if (!leaderId.equals(other.leaderId))
+			return false;
 		return true;
 	}
 
-	
 	
 //	@Override
 //	public boolean equals(Object obj) {

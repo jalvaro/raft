@@ -24,38 +24,46 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.uoc.dpcs.lsim.utils.LSimParameters;
 import recipesService.communication.Host;
 import recipesService.communication.Hosts;
 import util.Serializer;
 
+import lsim.application.handler.Handler;
 
 /**
  * @author Joan-Manuel Marques
  * December 2012
  *
  */
-public class WorkerStartHandler {
+public class WorkerStartHandler implements Handler {
 	
 	private Object values;
 
+	@Override
 	public Object execute(Object obj) {
 		values = obj;
 		return null;
 	}
 
-	public Hosts getparticipants(Host localNode) {
+	public Hosts getParticipants(){
+		return getParticipants(null);
+	}
+	
+	public Hosts getParticipants(Host localNode) {
 		Hosts participants = new Hosts(localNode);
 		List<Object> startValues = (List<Object>) values;
-		for (Iterator<Object> it = startValues.iterator(); it.hasNext(); ){
-			try {
-				Host node = (Host) Serializer.deserialize((byte []) it.next());
-				participants.add(node);
-			} catch (ClassNotFoundException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		for (Object object : startValues){
+			if (object != null){
+				try {
+					Host host = (Host) Serializer.deserialize((byte []) object);
+					participants.add(host);
+				} catch (ClassNotFoundException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
-
 		return participants;
 	}
 }

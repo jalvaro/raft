@@ -26,6 +26,7 @@ import java.util.Timer;
 
 import communication.rmi.RMIsd;
 
+import edu.uoc.dpcs.lsim.LSimFactory;
 
 import recipesService.ServerData;
 
@@ -34,8 +35,8 @@ import recipesService.ServerData;
  * December 2012, July 2013
  *
  */
-public class SimulationData {
-	private static SimulationData data;
+public class ActivitySimulation {
+	private static ActivitySimulation data;
 
 	// true when creating synthetic activity and connections/desconnections; false otherwise
 	private boolean activitySimulation=false;
@@ -75,16 +76,12 @@ public class SimulationData {
 	private boolean localExecution = true;
 	
 	
-	public static SimulationData getInstance(){
+	public static ActivitySimulation getInstance(){
 		if (data == null){
-			data = new SimulationData();
+			data = new ActivitySimulation();
 		}
 		return data;
 	}
-	
-//	public void init(ServerData serverData){
-//		this.serverData = serverData;
-//	}
 	
 	public void startSimulation(ServerData serverData){
 		this.activitySimulation = true;
@@ -102,7 +99,7 @@ public class SimulationData {
 //									" finishes Activity Simulation"
 //							);
 					System.out.println("Server " +
-							SimulationData.getInstance().serverData.getServerId() +
+							ActivitySimulation.getInstance().serverData.getServerId() +
 							" finishes Activity Simulation"
 							);
 				} else{
@@ -113,7 +110,7 @@ public class SimulationData {
 //									" finishes Activity Simulation. It will stop because is not connected"
 //							);
 					System.out.println("Server " + 
-							SimulationData.getInstance().serverData.getServerId() +
+							ActivitySimulation.getInstance().serverData.getServerId() +
 							" finishes Activity Simulation. It will stop because is not connected"
 							);
 					System.exit(1);
@@ -134,11 +131,11 @@ public class SimulationData {
 //										" Ends Execution"
 //								);
 						System.out.println("Server " +
-								SimulationData.getInstance().serverData.getServerId() +
+								ActivitySimulation.getInstance().serverData.getServerId() +
 								" Ends Execution"
 								);
-						SimulationData.getInstance().serverData.disconnect();
-						SimulationData.getInstance().serverData.setEnd();
+						ActivitySimulation.getInstance().serverData.disconnect();
+						ActivitySimulation.getInstance().serverData.setEnd();
 //						endSimulation = true;
 					}
 				});

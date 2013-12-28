@@ -105,6 +105,12 @@ public class SendArgsToTestServer {
 				executionMode = "remoteMode";
 			}
 
+			// phase corresponding to this execution
+			String phase = "all";
+			if (argsList.contains("-phase")){
+				int i = argsList.indexOf("-phase");
+				phase = args[i+1];
+			}
 
 			// --remove: if no remove argument, no remove
 			boolean removeOperationDeactivated = argsList.contains("--noremove");
@@ -141,6 +147,9 @@ public class SendArgsToTestServer {
 
 			params.add(executionMode);
 
+			params.add(properties.getProperty("numClients"));
+			params.add(phase);
+
 			ExperimentData experimentData = new ExperimentData();
 			experimentData.setGroupId(groupId);
 			experimentData.setParams(params);
@@ -166,6 +175,7 @@ public class SendArgsToTestServer {
 			System.err.println("SendArgsToTestServer error. Incorrect arguments");
 			System.err.println("\t arg0: number of server hosts (minimum 2)");
 			System.err.println("Optional args:");
+			System.err.println("\t-phase <phase>: phase");
 			System.err.println("\t-p <port of TestServer>: TestServer port");
 			System.err.println("\t-h <IP address of TestServer>: IP Address of TestServer [defaul value: localhost]");
 			System.err.println("\t-pResults <percentageRequiredResults>: percentage of received results prior to perform evaluation (e.g. 50 means 50%, 75 means 75%). Default value 50%");

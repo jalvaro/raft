@@ -18,29 +18,43 @@
 * along with this code.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package recipesService.test.server;
+package lsimElement.evaluator;
 
-import java.io.Serializable;
+import java.io.IOException;
+
+import util.Serializer;
+import lsim.application.handler.Handler;
+import lsim.result.Result;
 
 /**
  * @author Joan-Manuel Marques
- * January 2012
+ * December 2012
  *
  */
-
-public class FinalResult extends ResultBase implements Serializable{
-
-	private static final long serialVersionUID = 8109894826923035975L;
-
-	public FinalResult(ServerResult serverResult){
-		super(serverResult);
-	}
+public class ObjectSerializableHandler<E> implements Handler {
 	
-	public ResultType type(){
-		return ResultType.FINAL;
+	private E value = null;
+	private Result result = null;
+
+	@Override
+	public Object execute(Object obj) {
+		if (obj == null){
+			return null;
+		}
+		try {
+			result = (Result) obj;
+			value = (E) Serializer.deserialize((byte []) result.value());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			//			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			//			e.printStackTrace();
+		}
+		return value;
 	}
-	
-	public String toString(){
-		return "[" + this.type() + "] " +this.getServerResult();
+
+	public E value() {
+		return value;
 	}
 }

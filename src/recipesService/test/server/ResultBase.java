@@ -38,7 +38,7 @@ public abstract class ResultBase implements Serializable{
 	}
 	
 	public ServerResult getServerResult(){
-		return this.serverResult;
+		return serverResult;
 	}
 	
 	public abstract ResultType type();

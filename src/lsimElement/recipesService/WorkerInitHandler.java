@@ -20,40 +20,62 @@
 
 package lsimElement.recipesService;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 
+import communication.rmi.RMIsd;
+
+import edu.uoc.dpcs.lsim.LSimFactory;
 
 import recipesService.ServerData;
-import recipesService.activitySimulation.SimulationData;
+import recipesService.activitySimulation.ActivitySimulation;
 import recipesService.communication.Host;
 
 import util.Serializer;
 
+import lsim.application.handler.Handler;
 
 /**
  * @author Joan-Manuel Marques
  * July 2013
  *
  */
-public class WorkerInitHandler {
+public class WorkerInitHandler implements Handler {
 	
 	private ServerData serverData;
 	private Host localHost;
 	
+	@Override
 	public Object execute(Object obj) {
 		List<Object> params = (List<Object>) obj;
 				
 		int i=0;
 		
 		// param 0: groupId
-		String groupId = ((String)params.get(i++));
+		Properties properties = new Properties();
+        //load a properties file
+		try {
+			properties.load(new FileInputStream("config.properties"));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
+		String groupId = properties.getProperty("groupId");
+//		String groupId = ((String)params.get(i++));
+
+		i++;
 		// new serverData + Raft parameters
 		serverData = new ServerData(
 				groupId,
@@ -61,21 +83,21 @@ public class WorkerInitHandler {
 				);
 		
 		// simulation parameters
-		SimulationData.getInstance().setSimulationStop(Integer.parseInt((String)params.get(i++))*1000);
-		SimulationData.getInstance().setExecutionStop(Integer.parseInt((String)params.get(i++))*1000);
+		ActivitySimulation.getInstance().setSimulationStop(Integer.parseInt((String)params.get(i++))*1000);
+		ActivitySimulation.getInstance().setExecutionStop(Integer.parseInt((String)params.get(i++))*1000);
 
 		Random rnd = new Random();
 		int simulationDelay = (int) (rnd.nextDouble() * (2 * Integer.parseInt((String)params.get(i++)) * 1000));
-		SimulationData.getInstance().setSimulationDelay(simulationDelay);
-		SimulationData.getInstance().setSimulationPeriod(Integer.parseInt((String)params.get(i++))*1000);
+		ActivitySimulation.getInstance().setSimulationDelay(simulationDelay);
+		ActivitySimulation.getInstance().setSimulationPeriod(Integer.parseInt((String)params.get(i++))*1000);
 
-		SimulationData.getInstance().setProbDisconnect(Double.parseDouble((String)params.get(i++)));
-		SimulationData.getInstance().setProbReconnect(Double.parseDouble((String)params.get(i++)));
-		SimulationData.getInstance().setProbCreate(Double.parseDouble((String)params.get(i++)));
-		SimulationData.getInstance().setProbDel(Double.parseDouble((String)params.get(i))); // i not incremented because same parameter used to know if deletion is activated (next sentence)
-		SimulationData.getInstance().setDeletion(!(Double.parseDouble((String)params.get(i++)) == 0.0));
+		ActivitySimulation.getInstance().setProbDisconnect(Double.parseDouble((String)params.get(i++)));
+		ActivitySimulation.getInstance().setProbReconnect(Double.parseDouble((String)params.get(i++)));
+		ActivitySimulation.getInstance().setProbCreate(Double.parseDouble((String)params.get(i++)));
+		ActivitySimulation.getInstance().setProbDel(Double.parseDouble((String)params.get(i))); // i not incremented because same parameter used to know if deletion is activated (next sentence)
+		ActivitySimulation.getInstance().setDeletion(!(Double.parseDouble((String)params.get(i++)) == 0.0));
 
-		SimulationData.getInstance().setSamplingTime(Integer.parseInt((String)params.get(i++))*1000);
+		ActivitySimulation.getInstance().setSamplingTime(Integer.parseInt((String)params.get(i++))*1000);
 		
 		// parameter to indicate if all Servers will run in a single computer
 		// or they will run Servers hosted in different computers (or more than one 
@@ -83,7 +105,7 @@ public class WorkerInitHandler {
 		// * true: all Server run in a single computer
 		// * false: Servers running in different computers (or more than one Server in a single computer but
 		// 			this computer having the same internal and external IP address)
-		SimulationData.getInstance().setLocalExecution(((String)params.get(i++)).equals("localMode"));
+		ActivitySimulation.getInstance().setLocalExecution(((String)params.get(i++)).equals("localMode"));
 		
 		
 //		//         this computer having the same internal and external IP address) 
@@ -95,7 +117,7 @@ public class WorkerInitHandler {
 //		
 		String hostAddress = null;
 		
-		if (SimulationData.getInstance().localExecution()){
+		if (ActivitySimulation.getInstance().localExecution()){
 			try {
 				hostAddress = InetAddress.getLocalHost().getHostAddress();
 			} catch (UnknownHostException e) {
@@ -105,6 +127,9 @@ public class WorkerInitHandler {
 		} else {
 			hostAddress = getHostAddress();
 		}
+		
+		int hostPort = RMIsd.getInstance().createRMIregistry(hostAddress);
+		
 //
 //		// waits until the serverPartnerSide has published the service in a port
 //		serverPartnerSide.waitServicePublished(); <--- Crec que es podria treure
@@ -115,8 +140,8 @@ public class WorkerInitHandler {
 		System.out.println("WorkerInitHandler --> id: "+id);
 //		id = groupId+"@"+hostAddress+":"+serverPartnerSide.getPort(); <---- cal comprovar si es pot fer servir com id al nom del servei que es publica al registre
 
-		// createlocal node information to send to coordinator node
-		localHost = new Host(id);
+		// create local node information to send to coordinator node
+		localHost = new Host(hostAddress, hostPort, id);
 		
         // init return value
 		Object returnObj = null;
@@ -155,8 +180,13 @@ public class WorkerInitHandler {
         	in.close();
         	socket.close();
         } catch (IOException e) {
-        	System.err.println("WorkerInitiHandler -- getHostAddress -- Couldn't get I/O for "
-        			+ "the connection to: " + testServerAddress);
+//        	System.err.println("WorkerInitiHandler -- getHostAddress -- Couldn't get I/O for "
+//        			+ "the connection to: " + testServerAddress);
+        	LSimFactory.getWorkerInstance().log(
+    				"",
+    				"WorkerInitiHandler -- getHostAddress -- Couldn't get I/O for "
+    	        			+ "the connection to: " + testServerAddress
+        			);
         	System.exit(1);
         } catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block

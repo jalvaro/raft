@@ -35,6 +35,9 @@ public class Serializer {
     }
 
     public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+		if (bytes == null){
+			return null;
+		}
         ByteArrayInputStream b = new ByteArrayInputStream(bytes);
         ObjectInputStream o = new ObjectInputStream(b);
         return o.readObject();

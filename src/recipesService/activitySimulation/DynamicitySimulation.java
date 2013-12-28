@@ -47,7 +47,7 @@ public class DynamicitySimulation extends TimerTask{
 		 * Simulates random user activity (creation and removal of recipes) 
 		 * and dynamicity (connections and disconnections of the node).
 		 */
-		SimulationData simulationData = SimulationData.getInstance(); 
+		ActivitySimulation simulationData = ActivitySimulation.getInstance(); 
 		double a=rnd.nextDouble();
 		if(simulationData.isConnected()){
 			//probability of disconnection

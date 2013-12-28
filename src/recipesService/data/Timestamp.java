@@ -39,15 +39,15 @@ public class Timestamp implements Serializable{
 	 * to other operations issued by that node.
 	 */
 	
-	private String hostid;
+	private String hostId;
 	private long seqnumber;
 	
 	public Timestamp(String hostid, long seqnumber){
-		this.hostid = hostid;
+		this.hostId = hostid;
 		this.seqnumber = seqnumber;
 	}
-	public String getHostid() {
-		return hostid;
+	public String getHostId() {
+		return hostId;
 	}
 	
 	public boolean isNullTimestamp(){
@@ -79,10 +79,10 @@ public class Timestamp implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		Timestamp other = (Timestamp) obj;
-		if (hostid == null) {
-			if (other.hostid != null)
+		if (hostId == null) {
+			if (other.hostId != null)
 				return false;
-		} else if (!hostid.equals(other.hostid))
+		} else if (!hostId.equals(other.hostId))
 			return false;
 		if (seqnumber != other.seqnumber)
 			return false;
@@ -93,7 +93,7 @@ public class Timestamp implements Serializable{
 	 * toString
 	 */
 	public String toString(){
-		return hostid+"#"+seqnumber;
+		return hostId+"#"+seqnumber;
 	}
 	
 }

@@ -34,8 +34,15 @@ Results will be stored in a file named as the groupId from config.properties fil
 Runs 5 Servers and a TestServer locally.
 -path <path>: result files are created in ../results folder. If no -path is specified (as in previous example) files will be stored in current folder.
 
+3) Phase 4.1
+* Phase 4.1 (complete)
+./start.sh 5 -phase 4.1 --logResults -path ../results
 
-3) In phase 4.2 (Evaluation of Raft consensus algorithm), modify parameters of config.properties file (scripts folder) to evaluate Raft consensus algorithm under different conditions and environments.
+* Phase 4.1 (only phase 4.1)
+./start.sh 5 -phase only4.1 --logResults -path ../results
+
+
+4) In phase 4.2 (Evaluation of Raft consensus algorithm), modify parameters of config.properties file (scripts folder) to evaluate Raft consensus algorithm under different conditions and environments.
 Use runN.sh script to run N times start.sh script. Example:
 ./runN.sh 10 5 -phase 3 --logResults -path ../results
 runs 10 times start.sh script with the following parameters:
