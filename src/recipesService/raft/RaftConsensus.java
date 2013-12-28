@@ -37,7 +37,7 @@ import communication.DSException;
 import communication.rmi.RMIsd;
 
 import recipesService.CookingRecipes;
-import recipesService.activitySimulation.SimulationData;
+import recipesService.activitySimulation.ActivitySimulation;
 import recipesService.communication.Host;
 import recipesService.data.AddOperation;
 import recipesService.data.Operation;
@@ -241,7 +241,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 				boolean hasResponded = false;
 				while (!hasResponded && state == RaftState.CANDIDATE) {
 					try {
-						RequestVoteResponse rvr = RMIsd.getInstance().requestVote(s.getId(), persistentState.getCurrentTerm(), localHost.getId(),
+						RequestVoteResponse rvr = RMIsd.getInstance().requestVote(s, persistentState.getCurrentTerm(), localHost.getId(),
 								persistentState.getLastLogIndex(), persistentState.getLastLogTerm());
 						System.out.println("JORDI - createRequestVoteRunnable() - term: " + persistentState.getCurrentTerm() + ", rvr: " + rvr + ", - localhost: " + localHost);
 						
@@ -283,7 +283,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 				
 				while (!hasResponded && state == RaftState.LEADER) {
 					try {
-						AppendEntriesResponse aer = RMIsd.getInstance().appendEntries(s.getId(), persistentState.getCurrentTerm(), leader, -2, -2, null, -2);
+						AppendEntriesResponse aer = RMIsd.getInstance().appendEntries(s, persistentState.getCurrentTerm(), leader, -2, -2, null, -2);
 						// System.out.println("JORDI - createHeartBeatRunnable() - aer: " + aer + ", - localhost: " + localHost);
 						
 						hasResponded = true;
@@ -434,5 +434,13 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 
 	public synchronized List<LogEntry> getLog(){
 		return persistentState.getLog();
+	}
+	
+	public long getCurrentTerm() {
+		return persistentState.getCurrentTerm();
+	}
+
+	public String getLeaderId() {
+		return null;/* id of the leader in current term; “” if no leader */
 	}
 }
