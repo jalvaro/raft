@@ -196,9 +196,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 		persistentState.setCurrentTerm(currentTerm);
 		// isleaderAlive.set(true);
 
-		leader = newLeader;
 		disconnect();
 		connect();
+		leader = newLeader;
 	}
 	
 	private long getRandomizedElectionTimeout() {
