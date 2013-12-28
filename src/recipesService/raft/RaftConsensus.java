@@ -191,10 +191,12 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	/*
 	 *  Leader election
 	 */
-	private void setFollowerState(long currentTerm) {
+	private void setFollowerState(long currentTerm, String newLeader) {
 		state = RaftState.FOLLOWER;
 		persistentState.setCurrentTerm(currentTerm);
 		isleaderAlive.set(true);
+
+		leader = newLeader;
 		//disconnect();
 		//connect();
 	}
@@ -238,21 +240,21 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 			@Override
 			public void run() {
 				final RaftConsensus rc = RaftConsensus.this;
-				boolean hasResponded = false;
-				while (!hasResponded && state == RaftState.CANDIDATE) {
+				//boolean hasResponded = false;
+				//while (!hasResponded && state == RaftState.CANDIDATE) {
 					try {
 						RequestVoteResponse rvr = RMIsd.getInstance().requestVote(s, persistentState.getCurrentTerm(), localHost.getId(),
 								persistentState.getLastLogIndex(), persistentState.getLastLogTerm());
-						System.out.println("JORDI - createRequestVoteRunnable() - term: " + persistentState.getCurrentTerm() + ", rvr: " + rvr + ", - localhost: " + localHost);
+						// System.out.println("JORDI - createRequestVoteRunnable() - term: " + persistentState.getCurrentTerm() + ", rvr: " + rvr + ", - localhost: " + localHost);
 						
-						hasResponded = true;
+						//hasResponded = true;
 						synchronized(rc) {
 							if (rvr != null && rvr.isVoteGranted() && state == RaftState.CANDIDATE) {
 								receivedVotes.add(s);
-								System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: " + localHost);
+								// System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: " + localHost);
 								
 								if ((double) receivedVotes.size() > ((double) numServers)/2) {
-									System.out.println("JORDI - ************New LEADER**************" + " - term: " + persistentState.getCurrentTerm() + ", - localhost: " + localHost);
+									// System.out.println("JORDI - ************New LEADER**************" + " - term: " + persistentState.getCurrentTerm() + ", - localhost: " + localHost);
 									rc.disconnect();
 									leader = localHost.getId();
 									state = RaftState.LEADER;
@@ -260,7 +262,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 								}
 							} else if (rvr != null && !rvr.isVoteGranted()) {
 								if (rvr.getTerm() > persistentState.getCurrentTerm()) {
-									setFollowerState(rvr.getTerm());
+									setFollowerState(rvr.getTerm(), null);
 								}
 							}
 						}
@@ -268,7 +270,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
+				//}
 			}
 		};
 	}
@@ -279,17 +281,17 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 			@Override
 			public void run() {
 				final RaftConsensus rc = RaftConsensus.this;
-				boolean hasResponded = false;
+				//boolean hasResponded = false;
 				
-				while (!hasResponded && state == RaftState.LEADER) {
+				//while (!hasResponded && state == RaftState.LEADER) {
 					try {
 						AppendEntriesResponse aer = RMIsd.getInstance().appendEntries(s, persistentState.getCurrentTerm(), leader, -2, -2, null, -2);
 						// System.out.println("JORDI - createHeartBeatRunnable() - aer: " + aer + ", - localhost: " + localHost);
 						
-						hasResponded = true;
+						//hasResponded = true;
 						synchronized(rc) {
 							if (aer != null && !aer.isSucceeded() && state == RaftState.LEADER) {
-								setFollowerState(aer.getTerm());
+								setFollowerState(aer.getTerm(), null);
 							}
 						}
 						
@@ -297,13 +299,13 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
+				//}
 			}
 		};
 	}
 	
 	private synchronized void sendHeartBeats() {
-		System.out.println("JORDI - sendHeartBeats()");
+		// System.out.println("JORDI - sendHeartBeats()");
 		leaderHeartbeatTimeoutTimer = new Timer();
 		
 		leaderHeartbeatTimeoutTimer.schedule(new TimerTask() {
@@ -346,8 +348,8 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 		
 		if (grantVote) {
 			// Que es retorna???? lastlogterm????? term???
-			rvr = new RequestVoteResponse(1, true);
-			setFollowerState(term);
+			rvr = new RequestVoteResponse(persistentState.getLastLogTerm(), true);
+			setFollowerState(term, null);
 			persistentState.setVotedFor(candidateId);
 			// System.out.println("JORDI - requestVote: {votedFor: " + votedFor + ", candidateId: " + candidateId + "}, - localhost: " + localHost);
 		} else {
@@ -372,12 +374,12 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 			} else if (term == currentTerm) {
 				// if (votedFor == null || candidateId.equals(votedFor)) {
 				if (candidateId.equals(votedFor)) {
-					grantVote = checkLogTermAndIndex(term, candidateId, lastLogIndex, lastLogTerm);
+					grantVote = checkLogTermAndIndex(lastLogIndex, lastLogTerm);
 				} else {
 					grantVote = false;
 				}
 			} else {
-				grantVote = checkLogTermAndIndex(term, candidateId, lastLogIndex, lastLogTerm);
+				grantVote = checkLogTermAndIndex(lastLogIndex, lastLogTerm);
 			}
 		} else {
 			grantVote = false;
@@ -386,7 +388,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 		return grantVote;
 	}
 	
-	private boolean checkLogTermAndIndex(long term, String candidateId, int lastLogIndex, long lastLogTerm) {
+	private boolean checkLogTermAndIndex(int lastLogIndex, long lastLogTerm) {
 		boolean grantVote;
 		
 		if ( (persistentState.getLastLogTerm() > lastLogTerm || 
@@ -410,8 +412,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 			aer = new AppendEntriesResponse(persistentState.getCurrentTerm(), false);
 		} else {
 			aer = new AppendEntriesResponse(prevLogTerm, true);
-			leader = leaderId;
-			setFollowerState(term);
+			setFollowerState(term, leaderId);
 		}
 		
 		return aer;
