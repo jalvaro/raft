@@ -30,6 +30,7 @@ import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 import communication.DSException;
@@ -112,6 +113,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	//
 	
 	Executor executorQueue;
+	AtomicBoolean isleaderAlive;
 	static Random rnd = new Random();
 	
 	// =======================
@@ -138,12 +140,15 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 		persistentState = new PersistentState();
 		
 		// set servers list
-		System.out.println("JORDI - RaftConsensus.java - setServers(): " + otherServers.size() + ", " + otherServers.get(0));
+		// System.out.println("JORDI - RaftConsensus.java - setServers(): " + otherServers.size() + ", " + otherServers.get(0));
 		this.otherServers = otherServers;
 		numServers = otherServers.size() + 1;	
 
 		// Create a pool of threads
 		executorQueue = Executors.newCachedThreadPool();
+		
+		// Initialize 
+		isleaderAlive = new AtomicBoolean();
 	}
 
 	// connect
@@ -161,8 +166,10 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 			
 			@Override
 			public void run() {
-				System.out.println("JORDI - TimeOut!!!!!!" + ", - localhost: " + localHost);
-				startNewElection();
+				// System.out.println("JORDI - TimeOut!!!!!!" + ", - localhost: " + localHost);
+				if (!isleaderAlive.getAndSet(false)) {
+					startNewElection();
+				}
 			}
 		// First approximation, must be thought again
 		}, rndTimeout, rndTimeout);
@@ -187,8 +194,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	private void setFollowerState(long currentTerm) {
 		state = RaftState.FOLLOWER;
 		persistentState.setCurrentTerm(currentTerm);
-		disconnect();
-		connect();
+		isleaderAlive.set(true);
+		//disconnect();
+		//connect();
 	}
 	
 	private long getRandomizedElectionTimeout() {
@@ -196,7 +204,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	}
 	
 	private synchronized void startNewElection() {
-		System.out.println("JORDI - startNewElection() - localhost: " + localHost.getId());
+		// System.out.println("JORDI - startNewElection() - localhost: " + localHost.getId());
 		// Increment current term
 		persistentState.nextTerm();
 		// Change to Candidate state
@@ -219,7 +227,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 		 * 		- Increment term, start new election.
 		 */
 		
-		for (Host server : otherServers) {
+		for (final Host server : otherServers) {
 			executorQueue.execute(createRequestVoteRunnable(server));
 		}
 	}
@@ -241,10 +249,10 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 						synchronized(rc) {
 							if (rvr != null && rvr.isVoteGranted() && state == RaftState.CANDIDATE) {
 								receivedVotes.add(s);
-								System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: " + localHost);
+								// System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: " + localHost);
 								
 								if ((double) receivedVotes.size() > ((double) numServers)/2) {
-									System.out.println("JORDI - ************New LEADER**************" + " - term: " + persistentState.getCurrentTerm() + ", - localhost: " + localHost);
+									// System.out.println("JORDI - ************New LEADER**************" + " - term: " + persistentState.getCurrentTerm() + ", - localhost: " + localHost);
 									rc.disconnect();
 									leader = localHost.getId();
 									state = RaftState.LEADER;
@@ -295,7 +303,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	}
 	
 	private synchronized void sendHeartBeats() {
-		System.out.println("JORDI - sendHeartBeats()");
+		// System.out.println("JORDI - sendHeartBeats()");
 		leaderHeartbeatTimeoutTimer = new Timer();
 		
 		leaderHeartbeatTimeoutTimer.schedule(new TimerTask() {
@@ -349,7 +357,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 		// Read the current state
 		// Apply action to the state
 		// Create a response
-		System.out.println("JORDI - requestVote: {term: " + term + ", candidateId: " + candidateId + ", " + rvr + "}, - localhost: " + localHost);
+		// System.out.println("JORDI - requestVote: {term: " + term + ", candidateId: " + candidateId + ", " + rvr + "}, - localhost: " + localHost);
 		return rvr;
 	}
 	
@@ -412,7 +420,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft{
 	@Override
 	public RequestResponse Request(Operation operation) throws RemoteException {
 		// TODO Auto-generated method stub
-		System.out.println("JORDI - Request: {" + operation.toString() + "}");
+		// System.out.println("JORDI - Request: {" + operation.toString() + "}");
 		return null;
 	}
 
