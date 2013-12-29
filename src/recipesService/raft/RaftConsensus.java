@@ -181,7 +181,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 			@Override
 			public void run() {
-				System.out.println("JORDI - !!!!!!!!!!!!!!TIME OUT!!!!!!!!!!!!" + ", - localhost: " + localHost);
+				// System.out.println("JORDI - !!!!!!!!!!!!!!TIME OUT!!!!!!!!!!!!" + ", - localhost: " + localHost);
 				// if (!isleaderAlive.getAndSet(false)) {
 				startNewElection();
 				// }
@@ -280,12 +280,12 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 					synchronized (rc) {
 						if (rvr != null && rvr.isVoteGranted() && state == RaftState.CANDIDATE) {
 							receivedVotes.add(s);
-							System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: "
-									+ localHost);
+							// System.out.println("JORDI - createRequestVoteRunnable() - votes: " + receivedVotes.size() + ", - localhost: "
+							//		+ localHost);
 
 							if ((double) receivedVotes.size() > ((double) numServers) / 2) {
-								System.out.println("JORDI - ************New LEADER**************" + " - term: "
-										+ persistentState.getCurrentTerm() + ", - localhost: " + localHost);
+								//System.out.println("JORDI - ************New LEADER**************" + " - term: "
+								//		+ persistentState.getCurrentTerm() + ", - localhost: " + localHost);
 								rc.disconnect();
 								leader = localHost.getId();
 								state = RaftState.LEADER;
@@ -375,7 +375,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 	//
 
 	@Override
-	public synchronized RequestVoteResponse requestVote(long term, String candidateId, int lastLogIndex, long lastLogTerm)
+	public RequestVoteResponse requestVote(long term, String candidateId, int lastLogIndex, long lastLogTerm)
 			throws RemoteException {
 		// System.out.println("JORDI - requestVote: {" + term + ", " +
 		// candidateId + ", " + lastLogIndex + ", " + lastLogTerm + "}," +
@@ -383,16 +383,30 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 		RequestVoteResponse rvr = null;
 		// It is required to *guard* read, apply and create response actions
 		// Test parameters (including term)
-		long currentTerm = persistentState.getCurrentTerm();
+		final long currentTerm;
+		final String currentVotedFor;
+		final String currentLeader;
+		final int currentLastLogIndex;
+		final long currentLastLogTerm;
+		synchronized (this) {
+			currentTerm = persistentState.getCurrentTerm();
+			currentVotedFor = persistentState.getVotedFor();
+			currentLeader = leader;
+			currentLastLogIndex = persistentState.getLastLogIndex();
+			currentLastLogTerm = persistentState.getLastLogTerm();
+		}
 		boolean grantVote;
 
-		grantVote = checkRequest(term, candidateId, lastLogIndex, lastLogTerm);
+		grantVote = checkRequest(term, candidateId, lastLogIndex, lastLogTerm, currentTerm, currentVotedFor, currentLeader,
+				currentLastLogIndex, currentLastLogTerm);
 
 		if (grantVote) {
 			// Que es retorna???? lastlogterm????? term???
-			rvr = new RequestVoteResponse(persistentState.getLastLogTerm(), true);
-			setFollowerState(term, null);
-			persistentState.setVotedFor(candidateId);
+			rvr = new RequestVoteResponse(currentLastLogTerm, true);
+			synchronized (this) {
+				setFollowerState(term, null);
+				persistentState.setVotedFor(candidateId);
+			}
 			// System.out.println("JORDI - requestVote: {votedFor: " + votedFor
 			// + ", candidateId: " + candidateId + "}, - localhost: " +
 			// localHost);
@@ -403,28 +417,27 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 		// Read the current state
 		// Apply action to the state
 		// Create a response
-		System.out.println("JORDI - requestVote: {term: " + term + ", candidateId: " + candidateId + ", " + rvr + "}, - localhost: "
-				+ localHost);
+		// System.out.println("JORDI - requestVote: {term: " + term + ", candidateId: " + candidateId + ", " + rvr + "}, - localhost: "
+		// 		+ localHost);
 		return rvr;
 	}
 
-	private boolean checkRequest(long term, String candidateId, int lastLogIndex, long lastLogTerm) {
+	private boolean checkRequest(long term, String candidateId, int lastLogIndex, long lastLogTerm, long currentTerm, 
+			String currentVotedFor, String currentLeader, int currentLastLogIndex, long currentLastLogTerm) {
 		boolean grantVote;
-		String votedFor = persistentState.getVotedFor();
-		long currentTerm = persistentState.getCurrentTerm();
 
 		if (candidateId != null && term > 0) {
 			if (term < currentTerm) {
 				grantVote = false;
 			} else if (term == currentTerm) {
-				if ((votedFor == null || candidateId.equals(votedFor)) && (leader == null || candidateId.equals(leader))) {
+				if ((currentVotedFor == null || candidateId.equals(currentVotedFor)) && (currentLeader == null || candidateId.equals(currentLeader))) {
 					// if (candidateId.equals(votedFor)) {
-					grantVote = checkLogTermAndIndex(lastLogIndex, lastLogTerm);
+					grantVote = checkLogTermAndIndex(lastLogIndex, lastLogTerm, currentLastLogIndex, currentLastLogTerm);
 				} else {
 					grantVote = false;
 				}
 			} else {
-				grantVote = checkLogTermAndIndex(lastLogIndex, lastLogTerm);
+				grantVote = checkLogTermAndIndex(lastLogIndex, lastLogTerm, currentLastLogIndex, currentLastLogTerm);
 			}
 		} else {
 			grantVote = false;
@@ -433,11 +446,10 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 		return grantVote;
 	}
 
-	private boolean checkLogTermAndIndex(int lastLogIndex, long lastLogTerm) {
+	private boolean checkLogTermAndIndex(int lastLogIndex, long lastLogTerm, int currentLastLogIndex, long currentLastLogTerm) {
 		boolean grantVote;
 
-		if ((persistentState.getLastLogTerm() > lastLogTerm || (persistentState.getLastLogTerm() == lastLogTerm && persistentState
-				.getLastLogIndex() > lastLogIndex))) {
+		if ((currentLastLogTerm > lastLogTerm || (currentLastLogTerm == lastLogTerm && currentLastLogIndex > lastLogIndex))) {
 			grantVote = false;
 		} else {
 			grantVote = true;
@@ -447,17 +459,24 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 	}
 
 	@Override
-	public synchronized AppendEntriesResponse appendEntries(long term, String leaderId, int prevLogIndex, long prevLogTerm,
+	public AppendEntriesResponse appendEntries(long term, String leaderId, int prevLogIndex, long prevLogTerm,
 			List<LogEntry> entries, int leaderCommit) throws RemoteException {
 		AppendEntriesResponse aer;
-		if (term < persistentState.getCurrentTerm()) {
-			aer = new AppendEntriesResponse(persistentState.getCurrentTerm(), false);
+		
+		final long currentTerm;
+		synchronized (this) {
+			currentTerm = persistentState.getCurrentTerm();
+		}
+		if (term < currentTerm) {
+			aer = new AppendEntriesResponse(currentTerm, false);
 		} else {
 			aer = new AppendEntriesResponse(prevLogTerm, true);
-			setFollowerState(term, leaderId);
+			synchronized (this) {
+				setFollowerState(term, leaderId);
+			}
 		}
-		System.out.println("JORDI - appendEntries: { aer: " + aer + ", term: " + term + ", " + leaderId + ", " + prevLogIndex + ", "
-				+ prevLogTerm + ", [" + entries + "], " + leaderCommit + "} - localhost: " + localHost.getId());
+		// System.out.println("JORDI - appendEntries: { aer: " + aer + ", term: " + term + ", " + leaderId + ", " + prevLogIndex + ", "
+		//		+ prevLogTerm + ", [" + entries + "], " + leaderCommit + "} - localhost: " + localHost.getId());
 		return aer;
 	}
 
