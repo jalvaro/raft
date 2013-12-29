@@ -323,11 +323,12 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 								// System.out.println("JORDI - ************New LEADER************** - term: "
 								// + persistentState.getCurrentTerm() +
 								// ", - localhost: " + localHost.getId());
-								rc.disconnect();
+								disconnect();
 								leader = localHost.getId();
 								state = RaftState.LEADER;
 								initializeLeaderIndexes();
-								rc.sendHeartBeats();
+								sendHeartBeats();
+								sendNewEntries();
 							}
 						} else if (rvr != null && !rvr.isVoteGranted()) {
 							if (rvr.getTerm() > persistentState.getCurrentTerm()) {
@@ -416,6 +417,8 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 				final List<LogEntry> currEntries;
 				final int currCommitIndex;
 				final int auxNextIndex;
+				final int currLastLogIndex;
+				
 				synchronized (rc) {
 					auxNextIndex = nextIndex.getIndex(s.getId());
 					currentTerm = persistentState.getCurrentTerm();
@@ -427,7 +430,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 					} else {
 						currEntries = persistentState.getLogEntries(auxNextIndex);
 					}
+					tryToUpdateCommitIndex();
 					currCommitIndex = commitIndex;
+					currLastLogIndex = persistentState.getLastLogIndex();
 				}
 
 				try {
@@ -451,36 +456,14 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 								// ", - localhost: " + localHost.getId() +
 								// ", dest: " + s.getId()
 								// + " - isHeartBeat: " + isHeartBeat);
-								if (!aer.isSucceeded()) {
+								if (aer.isSucceeded()) {
+									nextIndex.setIndex(s.getId(), currLastLogIndex + 1);
+									matchIndex.setIndex(s.getId(), currLastLogIndex);
+								} else {
 									nextIndex.decrease(s.getId());
 									retryAppendEntries = true;
-								} else {
-									nextIndex.setIndex(s.getId(), auxNextIndex + currEntries.size());
 								}
 							}
-
-							/*
-							 * if (isHeartBeat) {
-							 * if (!aer.isSucceeded() &&
-							 * persistentState.getCurrentTerm() < aer.getTerm())
-							 * {
-							 * setFollowerState(aer.getTerm(), null);
-							 * }
-							 * } else {
-							 * if (!aer.isSucceeded()) {
-							 * if (persistentState.getCurrentTerm() <
-							 * aer.getTerm()) {
-							 * setFollowerState(aer.getTerm(), null);
-							 * } else {
-							 * nextIndex.decrease(s.getId());
-							 * retryAppendEntries = true;
-							 * }
-							 * } else {
-							 * nextIndex.setIndex(s.getId(), auxNextIndex +
-							 * currEntries.size());
-							 * }
-							 * }
-							 */
 						}
 					}
 					if (retryAppendEntries) {
@@ -549,6 +532,30 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 			}
 		}, 0);
 	}
+	
+	private void tryToUpdateCommitIndex() {
+		int i = 0;
+		int n;
+		for (LogEntry entry : persistentState.getLogEntries(commitIndex + 1)) {
+			n = commitIndex + 1 + i;
+			if ( myMajorityHigherOrEqual(n) && entry.getTerm() == persistentState.getCurrentTerm()) {
+				commitIndex = n;
+			}
+			i++;
+		}
+	}
+	
+	private boolean myMajorityHigherOrEqual(int n){
+		int count = 1;
+		for (Host server : otherServers){
+			int val = matchIndex.getIndex(server.getId());
+			if (val >= n){
+				count++;
+			}
+		}
+		
+		return (count >= (numServers/2 +1));
+	}
 
 	//
 	// API
@@ -580,8 +587,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 				currentLastLogTerm);
 
 		if (grantVote) {
-			// Que es retorna???? lastlogterm????? term???
-			rvr = new RequestVoteResponse(currentLastLogTerm, true);
+			rvr = new RequestVoteResponse(currentTerm, true);
 			synchronized (this) {
 				setFollowerState(term, null);
 				persistentState.setVotedFor(candidateId);
@@ -633,6 +639,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 		} else if (prevLogIndex > 0 && (prevLogEntry == null || prevLogEntry.getTerm() != prevLogTerm)) {
 			aer = new AppendEntriesResponse(currentTerm, false);
+			synchronized (this) {
+				setFollowerState(term, leaderId);
+			}
 		} else {
 			aer = new AppendEntriesResponse(currentTerm, true);
 
