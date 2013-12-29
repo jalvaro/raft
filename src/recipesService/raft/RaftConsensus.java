@@ -124,6 +124,8 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 	//
 
 	Executor executorQueue;
+	private Timer requestVoteRetryTimeoutTimer;
+	private Timer appendEntriesRetryTimeoutTimer;
 	// AtomicBoolean isleaderAlive;
 	static Random rnd = new Random();
 
@@ -246,6 +248,10 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 			// Reset leader??????????
 			// leader = null;
+			if (requestVoteRetryTimeoutTimer != null) {
+				requestVoteRetryTimeoutTimer.cancel();
+				requestVoteRetryTimeoutTimer = null;
+			}
 		}
 
 		/*
@@ -328,19 +334,28 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 								setFollowerState(rvr.getTerm(), null);
 							}
 						}
+						if (requestVoteRetryTimeoutTimer != null) {
+							requestVoteRetryTimeoutTimer.cancel();
+							requestVoteRetryTimeoutTimer = null;
+						}
 					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					// e.printStackTrace();
 					synchronized (rc) {
-						if (state == RaftState.CANDIDATE) {
-							new Timer().schedule(new TimerTask() {
+						if (state == RaftState.CANDIDATE && requestVoteRetryTimeoutTimer == null) {
+							requestVoteRetryTimeoutTimer = new Timer();
+
+							requestVoteRetryTimeoutTimer.schedule(new TimerTask() {
 
 								@Override
 								public void run() {
 									executorQueue.execute(createRequestVoteRunnable(s));
 								}
-							}, leaderHeartbeatTimeout / 2);
+							}, leaderHeartbeatTimeout / 2, leaderHeartbeatTimeout / 2);
+						} else if (state != RaftState.CANDIDATE && requestVoteRetryTimeoutTimer != null) {
+							requestVoteRetryTimeoutTimer.cancel();
+							requestVoteRetryTimeoutTimer = null;
 						}
 					}
 				}
@@ -476,14 +491,21 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 					// TODO Auto-generated catch block
 					// e.printStackTrace();
 					synchronized (rc) {
-						if (state == RaftState.LEADER) {
-							new Timer().schedule(new TimerTask() {
+						if (!isHeartBeat) {
+							if (state == RaftState.LEADER && appendEntriesRetryTimeoutTimer == null) {
+								appendEntriesRetryTimeoutTimer = new Timer();
 
-								@Override
-								public void run() {
-									executorQueue.execute(createAppendEntriesRunnable(s, isHeartBeat));
-								}
-							}, leaderHeartbeatTimeout / 2);
+								appendEntriesRetryTimeoutTimer.schedule(new TimerTask() {
+
+									@Override
+									public void run() {
+										executorQueue.execute(createAppendEntriesRunnable(s, false));
+									}
+								}, leaderHeartbeatTimeout / 2, leaderHeartbeatTimeout / 2);
+							} else if (state != RaftState.LEADER && appendEntriesRetryTimeoutTimer != null) {
+								appendEntriesRetryTimeoutTimer.cancel();
+								appendEntriesRetryTimeoutTimer = null;
+							}
 						}
 					}
 				}
@@ -509,6 +531,12 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 	private void sendNewEntries() {
 		// System.out.println("JORDI - sendNewEntries()");
+		synchronized (this) {
+			if (appendEntriesRetryTimeoutTimer != null) {
+				appendEntriesRetryTimeoutTimer.cancel();
+				appendEntriesRetryTimeoutTimer = null;
+			}
+		}
 
 		new Timer().schedule(new TimerTask() {
 
