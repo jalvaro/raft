@@ -299,7 +299,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		};
@@ -340,7 +340,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		};
