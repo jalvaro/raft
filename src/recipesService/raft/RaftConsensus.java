@@ -186,7 +186,8 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 			@Override
 			public void run() {
-				//System.out.println("JORDI - !!!!!!!!!!!!!!TIME OUT!!!!!!!!!!!!" + ", - localhost: " + localHost.getId());
+				// System.out.println("JORDI - !!!!!!!!!!!!!!TIME OUT!!!!!!!!!!!!"
+				// + ", - localhost: " + localHost.getId());
 				// if (!isleaderAlive.getAndSet(false)) {
 				startNewElection();
 				// }
@@ -313,8 +314,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 							// + localHost);
 
 							if (hasMajorityOfVotes()) {
-								//System.out.println("JORDI - ************New LEADER************** - term: "
-								//		+ persistentState.getCurrentTerm() + ", - localhost: " + localHost.getId());
+								// System.out.println("JORDI - ************New LEADER************** - term: "
+								// + persistentState.getCurrentTerm() +
+								// ", - localhost: " + localHost.getId());
 								rc.disconnect();
 								leader = localHost.getId();
 								state = RaftState.LEADER;
@@ -332,7 +334,13 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 					// e.printStackTrace();
 					synchronized (rc) {
 						if (state == RaftState.CANDIDATE) {
-							executorQueue.execute(createRequestVoteRunnable(s));
+							new Timer().schedule(new TimerTask() {
+
+								@Override
+								public void run() {
+									executorQueue.execute(createRequestVoteRunnable(s));
+								}
+							}, leaderHeartbeatTimeout / 2);
 						}
 					}
 				}
@@ -418,12 +426,16 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 					synchronized (rc) {
 						if (state == RaftState.LEADER && aer != null) {
 							if (!aer.isSucceeded() && persistentState.getCurrentTerm() < aer.getTerm()) {
-								//System.out.println("JORDI - " + aer + ", - localhost: " + localHost.getId() + ", dest: " + s.getId()
-								//		+ " - isHeartBeat: " + isHeartBeat);
+								// System.out.println("JORDI - " + aer +
+								// ", - localhost: " + localHost.getId() +
+								// ", dest: " + s.getId()
+								// + " - isHeartBeat: " + isHeartBeat);
 								setFollowerState(aer.getTerm(), null);
 							} else if (!isHeartBeat) {
-								//System.out.println("JORDI - " + aer + ", - localhost: " + localHost.getId() + ", dest: " + s.getId()
-								//		+ " - isHeartBeat: " + isHeartBeat);
+								// System.out.println("JORDI - " + aer +
+								// ", - localhost: " + localHost.getId() +
+								// ", dest: " + s.getId()
+								// + " - isHeartBeat: " + isHeartBeat);
 								if (!aer.isSucceeded()) {
 									nextIndex.decrease(s.getId());
 									retryAppendEntries = true;
@@ -465,7 +477,13 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 					// e.printStackTrace();
 					synchronized (rc) {
 						if (state == RaftState.LEADER) {
-							executorQueue.execute(createAppendEntriesRunnable(s, isHeartBeat));
+							new Timer().schedule(new TimerTask() {
+
+								@Override
+								public void run() {
+									executorQueue.execute(createAppendEntriesRunnable(s, isHeartBeat));
+								}
+							}, leaderHeartbeatTimeout / 2);
 						}
 					}
 				}
@@ -550,8 +568,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 		// Read the current state
 		// Apply action to the state
 		// Create a response
-		//System.out.println("JORDI - requestVote: {term: " + term + ", candidateId: " + candidateId + ", " + rvr + "}, - localhost: "
-			//	+ localHost.getId());
+		// System.out.println("JORDI - requestVote: {term: " + term +
+		// ", candidateId: " + candidateId + ", " + rvr + "}, - localhost: "
+		// + localHost.getId());
 		return rvr;
 	}
 
@@ -623,7 +642,9 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 		synchronized (this) {
 			if (state == RaftState.LEADER) {
-				//System.out.println("JORDI - Request: {" + operation.toString() + "} - localhost: " + localHost.getId());
+				// System.out.println("JORDI - Request: {" +
+				// operation.toString() + "} - localhost: " +
+				// localHost.getId());
 				// Send AppendEntries RPC to all servers
 				persistentState.addEntry(operation);
 				sendNewEntries();
