@@ -1,0 +1,92 @@
+start recipesService.test.TestServer (on port: 20000)
+TestServer -- current experiment of group group10 will run on port 20001
+TestServerExperimentManager -- params: [group10, 150, 200, 40, 11, 5, 0.05, 0.65, 0.25, 0.10, 5, localMode, 30, 2]
+Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
+Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
+Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
+Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
+Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
+WorkerInitHandler --> id: group10@192.168.1.35:33097:-78248
+WorkerInitHandler --> id: group10@192.168.1.35:33145:-74446
+WorkerInitHandler --> id: group10@192.168.1.35:33192:88479
+WorkerInitHandler --> id: group10@192.168.1.35:33237:-47313
+WorkerInitHandler --> id: group10@192.168.1.35:33285:-33824
+-- *** --> Server -- local host: [192.168.1.35,1100,group10@192.168.1.35:33097:-78248]
+-- *** --> Server -- participants: [group10@192.168.1.35:33097:-78248, group10@192.168.1.35:33145:-74446, group10@192.168.1.35:33192:88479, group10@192.168.1.35:33237:-47313, group10@192.168.1.35:33285:-33824]
+start serverData: group10@192.168.1.35:33097:-78248
+-- *** --> Server -- local host: [192.168.1.35,1101,group10@192.168.1.35:33145:-74446]
+-- *** --> Server -- participants: [group10@192.168.1.35:33097:-78248, group10@192.168.1.35:33145:-74446, group10@192.168.1.35:33192:88479, group10@192.168.1.35:33237:-47313, group10@192.168.1.35:33285:-33824]
+start serverData: group10@192.168.1.35:33145:-74446
+-- *** --> Server -- local host: [192.168.1.35,1102,group10@192.168.1.35:33192:88479]
+-- *** --> Server -- participants: [group10@192.168.1.35:33097:-78248, group10@192.168.1.35:33145:-74446, group10@192.168.1.35:33192:88479, group10@192.168.1.35:33237:-47313, group10@192.168.1.35:33285:-33824]
+start serverData: group10@192.168.1.35:33192:88479
+-- *** --> Server -- local host: [192.168.1.35,1103,group10@192.168.1.35:33237:-47313]
+-- *** --> Server -- participants: [group10@192.168.1.35:33097:-78248, group10@192.168.1.35:33145:-74446, group10@192.168.1.35:33192:88479, group10@192.168.1.35:33237:-47313, group10@192.168.1.35:33285:-33824]
+start serverData: group10@192.168.1.35:33237:-47313
+-- *** --> Server -- local host: [192.168.1.35,1104,group10@192.168.1.35:33285:-33824]
+-- *** --> Server -- participants: [group10@192.168.1.35:33097:-78248, group10@192.168.1.35:33145:-74446, group10@192.168.1.35:33192:88479, group10@192.168.1.35:33237:-47313, group10@192.168.1.35:33285:-33824]
+start serverData: group10@192.168.1.35:33285:-33824
+[group10@192.168.1.35:33192:88479] >> Server Disconnection
+[group10@192.168.1.35:33192:88479] >> Server Reconnection
+[group10@192.168.1.35:33192:88479] >> Server Disconnection
+[group10@192.168.1.35:33145:-74446] >> Server Disconnection
+[group10@192.168.1.35:33192:88479] >> Server Reconnection
+[group10@192.168.1.35:33145:-74446] >> Server Reconnection
+[group10@192.168.1.35:33192:88479] >> Server Disconnection
+[group10@192.168.1.35:33145:-74446] >> Server Disconnection
+[group10@192.168.1.35:33145:-74446] >> Server Reconnection
+[group10@192.168.1.35:33192:88479] >> Server Reconnection
+[group10@192.168.1.35:33097:-78248] >> Server Disconnection
+[group10@192.168.1.35:33097:-78248] >> Server Reconnection
+Server group10@192.168.1.35:33097:-78248 finishes Activity Simulation
+Server group10@192.168.1.35:33145:-74446 finishes Activity Simulation
+Server group10@192.168.1.35:33237:-47313 finishes Activity Simulation
+Server group10@192.168.1.35:33285:-33824 finishes Activity Simulation
+Server group10@192.168.1.35:33192:88479 finishes Activity Simulation
+##### Final result from server: group10@192.168.1.35:33097:-78248
+##### Final result from server: group10@192.168.1.35:33237:-47313
+##### Final result from server: group10@192.168.1.35:33145:-74446
+##### Final result from server: group10@192.168.1.35:33192:88479
+##### Final result from server: group10@192.168.1.35:33285:-33824
+
+
+
+================================================
+END OF EVALUATION
+
+
+RESULTS
+=======
+##### [group10@192.168.1.35:33097:-78248] Result:
+ ServerResult [
+groupId=group10
+hostId=group10@192.168.1.35:33097:-78248
+recipes={}
+log=[]
+term=2
+leaderId=group10@192.168.1.35:33285:-33824]
+
+
+
+phase 2	Correct
+
+
+
+================================================
+
+
+
+
+
+
+*********** num received results: 5
+*********** % received results: 100
+*********** minimal required number of results: 3
+
+
+
+Server group10@192.168.1.35:33097:-78248 Ends Execution
+Server group10@192.168.1.35:33145:-74446 Ends Execution
+Server group10@192.168.1.35:33237:-47313 Ends Execution
+Server group10@192.168.1.35:33285:-33824 Ends Execution
+Server group10@192.168.1.35:33192:88479 Ends Execution
