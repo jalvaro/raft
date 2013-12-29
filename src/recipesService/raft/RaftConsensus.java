@@ -314,20 +314,18 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 				try {
 					final long currentTerm;
-					final String currentLeader;
 					final int prevLogIndex;
 					final long prevLogTerm;
 					final List<LogEntry> entries;
 					final int commitIndex;
 					synchronized (rc) {
 						currentTerm = persistentState.getCurrentTerm();
-						currentLeader = leader;
 						prevLogIndex = -2;
 						prevLogTerm = -2;
 						entries = null;
 						commitIndex = -2;
 					}
-					AppendEntriesResponse aer = RMIsd.getInstance().appendEntries(s, currentTerm, currentLeader, prevLogIndex, prevLogTerm,
+					AppendEntriesResponse aer = RMIsd.getInstance().appendEntries(s, currentTerm, localHost.getId(), prevLogIndex, prevLogTerm,
 							entries, commitIndex);
 					// System.out.println("JORDI - createHeartBeatRunnable() - aer: "
 					// + aer + ", - localhost: " + localHost);
