@@ -6,35 +6,33 @@ Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
 Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
 Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
 Server -- Initializing ... TestServer port: 20000 TestServer host: 127.0.0.1
-WorkerInitHandler --> id: group10@192.168.1.35:30151:-35724
-WorkerInitHandler --> id: group10@192.168.1.35:30196:96766
-WorkerInitHandler --> id: group10@192.168.1.35:30249:-3693
-WorkerInitHandler --> id: group10@192.168.1.35:30299:-25195
-WorkerInitHandler --> id: group10@192.168.1.35:30348:-33903
--- *** --> Server -- local host: [192.168.1.35,1100,group10@192.168.1.35:30151:-35724]
--- *** --> Server -- participants: [group10@192.168.1.35:30151:-35724, group10@192.168.1.35:30196:96766, group10@192.168.1.35:30249:-3693, group10@192.168.1.35:30299:-25195, group10@192.168.1.35:30348:-33903]
-start serverData: group10@192.168.1.35:30151:-35724
--- *** --> Server -- local host: [192.168.1.35,1101,group10@192.168.1.35:30196:96766]
--- *** --> Server -- participants: [group10@192.168.1.35:30151:-35724, group10@192.168.1.35:30196:96766, group10@192.168.1.35:30249:-3693, group10@192.168.1.35:30299:-25195, group10@192.168.1.35:30348:-33903]
-start serverData: group10@192.168.1.35:30196:96766
--- *** --> Server -- local host: [192.168.1.35,1102,group10@192.168.1.35:30249:-3693]
--- *** --> Server -- participants: [group10@192.168.1.35:30151:-35724, group10@192.168.1.35:30196:96766, group10@192.168.1.35:30249:-3693, group10@192.168.1.35:30299:-25195, group10@192.168.1.35:30348:-33903]
-start serverData: group10@192.168.1.35:30249:-3693
--- *** --> Server -- local host: [192.168.1.35,1103,group10@192.168.1.35:30299:-25195]
--- *** --> Server -- participants: [group10@192.168.1.35:30151:-35724, group10@192.168.1.35:30196:96766, group10@192.168.1.35:30249:-3693, group10@192.168.1.35:30299:-25195, group10@192.168.1.35:30348:-33903]
-start serverData: group10@192.168.1.35:30299:-25195
--- *** --> Server -- local host: [192.168.1.35,1104,group10@192.168.1.35:30348:-33903]
--- *** --> Server -- participants: [group10@192.168.1.35:30151:-35724, group10@192.168.1.35:30196:96766, group10@192.168.1.35:30249:-3693, group10@192.168.1.35:30299:-25195, group10@192.168.1.35:30348:-33903]
-start serverData: group10@192.168.1.35:30348:-33903
-	[Client3] Adds: Client3#1
+WorkerInitHandler --> id: group10@192.168.1.35:92574:64308
+WorkerInitHandler --> id: group10@192.168.1.35:92623:-14864
+WorkerInitHandler --> id: group10@192.168.1.35:92670:-64238
+WorkerInitHandler --> id: group10@192.168.1.35:92716:496
+WorkerInitHandler --> id: group10@192.168.1.35:92765:41486
+-- *** --> Server -- local host: [192.168.1.35,1100,group10@192.168.1.35:92574:64308]
+-- *** --> Server -- participants: [group10@192.168.1.35:92574:64308, group10@192.168.1.35:92623:-14864, group10@192.168.1.35:92670:-64238, group10@192.168.1.35:92716:496, group10@192.168.1.35:92765:41486]
+start serverData: group10@192.168.1.35:92574:64308
+-- *** --> Server -- local host: [192.168.1.35,1101,group10@192.168.1.35:92623:-14864]
+-- *** --> Server -- participants: [group10@192.168.1.35:92574:64308, group10@192.168.1.35:92623:-14864, group10@192.168.1.35:92670:-64238, group10@192.168.1.35:92716:496, group10@192.168.1.35:92765:41486]
+start serverData: group10@192.168.1.35:92623:-14864
+-- *** --> Server -- local host: [192.168.1.35,1102,group10@192.168.1.35:92670:-64238]
+-- *** --> Server -- participants: [group10@192.168.1.35:92574:64308, group10@192.168.1.35:92623:-14864, group10@192.168.1.35:92670:-64238, group10@192.168.1.35:92716:496, group10@192.168.1.35:92765:41486]
+start serverData: group10@192.168.1.35:92670:-64238
+-- *** --> Server -- local host: [192.168.1.35,1103,group10@192.168.1.35:92716:496]
+-- *** --> Server -- participants: [group10@192.168.1.35:92574:64308, group10@192.168.1.35:92623:-14864, group10@192.168.1.35:92670:-64238, group10@192.168.1.35:92716:496, group10@192.168.1.35:92765:41486]
+start serverData: group10@192.168.1.35:92716:496
+-- *** --> Server -- local host: [192.168.1.35,1104,group10@192.168.1.35:92765:41486]
+-- *** --> Server -- participants: [group10@192.168.1.35:92574:64308, group10@192.168.1.35:92623:-14864, group10@192.168.1.35:92670:-64238, group10@192.168.1.35:92716:496, group10@192.168.1.35:92765:41486]
+start serverData: group10@192.168.1.35:92765:41486
+[group10@192.168.1.35:92716:496] >> Server Disconnection
 	[Client6] Adds: Client6#1
-	[Client14] Adds: Client14#1
-Exception in thread "Timer-13" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-2" Exception in thread "Timer-5" java.lang.NullPointerException
+	[Client4] Adds: Client4#1
+	[Client10] Adds: Client10#1
+	[Client27] Adds: Client27#1
+[Client10] Destination host [192.168.1.35,1103,group10@192.168.1.35:92716:496] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
+Exception in thread "Timer-3" Exception in thread "Timer-5" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
@@ -44,64 +42,20 @@ java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-	[Client4] Adds: Client4#1
-	[Client2] Adds: Client2#1
-Exception in thread "Timer-1" java.lang.NullPointerException
+Exception in thread "Timer-9" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-3" java.lang.NullPointerException
+Exception in thread "Timer-26" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-	[Client7] Adds: Client7#1
-	[Client26] Adds: Client26#1
-Exception in thread "Timer-25" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-6" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-	[Client1] Adds: Client1#1
-	[Client8] Adds: Client8#1
-	[Client19] Adds: Client19#1
-	[Client24] Adds: Client24#1
-	[Client18] Adds: Client18#1
-	[Client29] Adds: Client29#1
-	[Client25] Adds: Client25#1
-Exception in thread "Timer-0" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
+	[Client12] Adds: Client12#1
+[Client12] Destination host [192.168.1.35,1103,group10@192.168.1.35:92716:496] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
 	[Client28] Adds: Client28#1
-Exception in thread "Timer-7" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-18" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-17" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-24" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-28" java.lang.NullPointerException
+Exception in thread "Timer-11" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
@@ -111,61 +65,76 @@ Exception in thread "Timer-27" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-23" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-[group10@192.168.1.35:30299:-25195] >> Server Disconnection
-	[Client22] Adds: Client22#1
-Exception in thread "Timer-21" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
+[group10@192.168.1.35:92670:-64238] >> Server Disconnection
+[group10@192.168.1.35:92716:496] >> Server Reconnection
 	[Client5] Adds: Client5#1
-	[Client12] Adds: Client12#1
-	[Client16] Adds: Client16#1
-	[Client23] Adds: Client23#1
-Exception in thread "Timer-11" java.lang.NullPointerException
+	[Client9] Adds: Client9#1
+	[Client13] Adds: Client13#1
+	[Client19] Adds: Client19#1
+Exception in thread "Timer-12" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-22" java.lang.NullPointerException
+[Client5] Destination host [192.168.1.35,1102,group10@192.168.1.35:92670:-64238] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
+	[Client21] Adds: Client21#1
+Exception in thread "Timer-8" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-15" java.lang.NullPointerException
+[Client19] Destination host [192.168.1.35,1102,group10@192.168.1.35:92670:-64238] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
+Exception in thread "Timer-20" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-[Client5] Destination host [192.168.1.35,1103,group10@192.168.1.35:30299:-25195] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
+Exception in thread "Timer-18" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
 Exception in thread "Timer-4" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-[group10@192.168.1.35:30299:-25195] >> Server Reconnection
-[group10@192.168.1.35:30249:-3693] >> Server Disconnection
-	[Client27] Adds: Client27#1
-Exception in thread "Timer-26" java.lang.NullPointerException
+	[Client1] Adds: Client1#1
+Exception in thread "Timer-0" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-[group10@192.168.1.35:30249:-3693] >> Server Reconnection
-	[Client10] Adds: Client10#1
+	[Client17] Adds: Client17#1
 	[Client15] Adds: Client15#1
-	[Client20] Adds: Client20#1
-Exception in thread "Timer-14" java.lang.NullPointerException
+Exception in thread "Timer-14" Exception in thread "Timer-16" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-9" java.lang.NullPointerException
+java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+[group10@192.168.1.35:92670:-64238] >> Server Reconnection
+[group10@192.168.1.35:92574:64308] >> Server Disconnection
+	[Client22] Adds: Client22#1
+	[Client24] Adds: Client24#1
+[Client22] Destination host [192.168.1.35,1100,group10@192.168.1.35:92574:64308] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
+Exception in thread "Timer-23" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+Exception in thread "Timer-21" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+	[Client11] Adds: Client11#1
+	[Client20] Adds: Client20#1
+Exception in thread "Timer-10" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
@@ -175,62 +144,118 @@ Exception in thread "Timer-19" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-[group10@192.168.1.35:30348:-33903] >> Server Disconnection
-	[Client17] Adds: Client17#1
-	[Client21] Adds: Client21#1
-Exception in thread "Timer-16" java.lang.NullPointerException
+[group10@192.168.1.35:92574:64308] >> Server Reconnection
+	[Client14] Adds: Client14#1
+Exception in thread "Timer-13" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-20" java.lang.NullPointerException
+	[Client25] Adds: Client25#1
+Exception in thread "Timer-24" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-[group10@192.168.1.35:30348:-33903] >> Server Reconnection
-	[Client11] Adds: Client11#1
-	[Client13] Adds: Client13#1
-Exception in thread "Timer-12" java.lang.NullPointerException
+	[Client18] Adds: Client18#1
+	[Client26] Adds: Client26#1
+Exception in thread "Timer-25" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-Exception in thread "Timer-10" java.lang.NullPointerException
+Exception in thread "Timer-17" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
+[group10@192.168.1.35:92574:64308] >> Server Disconnection
+	[Client8] Adds: Client8#1
+	[Client3] Adds: Client3#1
+	[Client7] Adds: Client7#1
+[Client7] Destination host [192.168.1.35,1100,group10@192.168.1.35:92574:64308] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
+Exception in thread "Timer-2" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+Exception in thread "Timer-7" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+Exception in thread "Timer-6" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+[group10@192.168.1.35:92670:-64238] >> Server Disconnection
+	[Client2] Adds: Client2#1
+Exception in thread "Timer-1" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+	[Client23] Adds: Client23#1
+[Client23] Destination host [192.168.1.35,1102,group10@192.168.1.35:92670:-64238] not reachable: a network error has occured or the testing environment simulates that the destination host is failed
+Exception in thread "Timer-22" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+[group10@192.168.1.35:92574:64308] >> Server Reconnection
+[group10@192.168.1.35:92670:-64238] >> Server Reconnection
+	[Client29] Adds: Client29#1
+Exception in thread "Timer-28" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+	[Client16] Adds: Client16#1
+Exception in thread "Timer-15" java.lang.NullPointerException
+	at recipesService.test.client.Clients$1.send(Clients.java:305)
+	at recipesService.test.client.Clients$1.run(Clients.java:183)
+	at java.util.TimerThread.mainLoop(Timer.java:555)
+	at java.util.TimerThread.run(Timer.java:505)
+[group10@192.168.1.35:92670:-64238] >> Server Disconnection
 	[Client30] Adds: Client30#1
 Exception in thread "Timer-29" java.lang.NullPointerException
 	at recipesService.test.client.Clients$1.send(Clients.java:305)
 	at recipesService.test.client.Clients$1.run(Clients.java:183)
 	at java.util.TimerThread.mainLoop(Timer.java:555)
 	at java.util.TimerThread.run(Timer.java:505)
-[group10@192.168.1.35:30151:-35724] >> Server Disconnection
-	[Client9] Adds: Client9#1
-Exception in thread "Timer-8" java.lang.NullPointerException
-	at recipesService.test.client.Clients$1.send(Clients.java:305)
-	at recipesService.test.client.Clients$1.run(Clients.java:183)
-	at java.util.TimerThread.mainLoop(Timer.java:555)
-	at java.util.TimerThread.run(Timer.java:505)
-[group10@192.168.1.35:30151:-35724] >> Server Reconnection
-[group10@192.168.1.35:30348:-33903] >> Server Disconnection
-[group10@192.168.1.35:30348:-33903] >> Server Reconnection
-[group10@192.168.1.35:30151:-35724] >> Server Disconnection
-[group10@192.168.1.35:30151:-35724] >> Server Reconnection
-[group10@192.168.1.35:30348:-33903] >> Server Disconnection
-[group10@192.168.1.35:30348:-33903] >> Server Reconnection
-Server group10@192.168.1.35:30196:96766 finishes Activity Simulation
-Server group10@192.168.1.35:30151:-35724 finishes Activity Simulation
-Server group10@192.168.1.35:30249:-3693 finishes Activity Simulation
-Server group10@192.168.1.35:30348:-33903 finishes Activity Simulation
-Server group10@192.168.1.35:30299:-25195 finishes Activity Simulation
-##### Final result from server: group10@192.168.1.35:30196:96766
-##### Final result from server: group10@192.168.1.35:30151:-35724
-##### Final result from server: group10@192.168.1.35:30348:-33903
-##### Final result from server: group10@192.168.1.35:30249:-3693
-##### Final result from server: group10@192.168.1.35:30299:-25195
+[group10@192.168.1.35:92670:-64238] >> Server Reconnection
+[group10@192.168.1.35:92765:41486] >> Server Disconnection
+[group10@192.168.1.35:92765:41486] >> Server Reconnection
+[group10@192.168.1.35:92716:496] >> Server Disconnection
+[group10@192.168.1.35:92716:496] >> Server Reconnection
+[group10@192.168.1.35:92623:-14864] >> Server Disconnection
+[group10@192.168.1.35:92765:41486] >> Server Disconnection
+[group10@192.168.1.35:92765:41486] >> Server Reconnection
+[group10@192.168.1.35:92623:-14864] >> Server Reconnection
+[group10@192.168.1.35:92574:64308] >> Server Disconnection
+[group10@192.168.1.35:92574:64308] >> Server Reconnection
+[group10@192.168.1.35:92574:64308] >> Server Disconnection
+[group10@192.168.1.35:92765:41486] >> Server Disconnection
+[group10@192.168.1.35:92765:41486] >> Server Reconnection
+[group10@192.168.1.35:92670:-64238] >> Server Disconnection
+[group10@192.168.1.35:92574:64308] >> Server Reconnection
+[group10@192.168.1.35:92670:-64238] >> Server Reconnection
+[group10@192.168.1.35:92623:-14864] >> Server Disconnection
+Server group10@192.168.1.35:92574:64308 finishes Activity Simulation
+Server group10@192.168.1.35:92670:-64238 finishes Activity Simulation
+Server group10@192.168.1.35:92623:-14864 finishes Activity Simulation. It will stop because is not connected
+Server group10@192.168.1.35:92716:496 finishes Activity Simulation
+Server group10@192.168.1.35:92765:41486 finishes Activity Simulation
+##### Final result from server: group10@192.168.1.35:92574:64308
+##### Final result from server: group10@192.168.1.35:92670:-64238
+##### Final result from server: group10@192.168.1.35:92716:496
+##### Final result from server: group10@192.168.1.35:92765:41486
+Server group10@192.168.1.35:92574:64308 Ends Execution
+Server group10@192.168.1.35:92670:-64238 Ends Execution
+Server group10@192.168.1.35:92716:496 Ends Execution
+Server group10@192.168.1.35:92765:41486 Ends Execution
+*********** Accept timeout
 
 
 
@@ -240,14 +265,14 @@ END OF EVALUATION
 
 RESULTS
 =======
-##### [group10@192.168.1.35:30196:96766] Result:
+##### [group10@192.168.1.35:92574:64308] Result:
  ServerResult [
 groupId=group10
-hostId=group10@192.168.1.35:30196:96766
-recipes={}
-log=[LogEntry [term=1, command=AddOperation [recipe=[Client3#2, Client3#2-sjukctok, Client3], timestamp=Client3#2]], LogEntry [term=1, command=AddOperation [recipe=[Client14#2, Client14#2-psutlfyr, Client14], timestamp=Client14#2]], LogEntry [term=1, command=AddOperation [recipe=[Client2#2, Client2#2-vyhborog, Client2], timestamp=Client2#2]], LogEntry [term=1, command=AddOperation [recipe=[Client4#2, Client4#2-hrwqlovq, Client4], timestamp=Client4#2]], LogEntry [term=1, command=AddOperation [recipe=[Client18#2, Client18#2-umhwvhxr, Client18], timestamp=Client18#2]], LogEntry [term=1, command=AddOperation [recipe=[Client16#2, Client16#2-wpeklrhp, Client16], timestamp=Client16#2]], LogEntry [term=1, command=AddOperation [recipe=[Client5#2, Client5#2-eveldfqc, Client5], timestamp=Client5#2]], LogEntry [term=1, command=AddOperation [recipe=[Client10#2, Client10#2-ycncxjyx, Client10], timestamp=Client10#2]], LogEntry [term=1, command=AddOperation [recipe=[Client9#2, Client9#2-nlfhkwiw, Client9], timestamp=Client9#2]]]
-term=1
-leaderId=group10@192.168.1.35:30196:96766]
+hostId=group10@192.168.1.35:92574:64308
+recipes={Client13#2=[Client13#2, Client13#2-cmfkbrdx, Client13], Client15#2=[Client15#2, Client15#2-ukbcnobk, Client15], Client20#2=[Client20#2, Client20#2-babcmruo, Client20], Client22#2=[Client22#2, Client22#2-wgpoacyk, Client22], Client27#2=[Client27#2, Client27#2-sghibkwk, Client27], Client29#2=[Client29#2, Client29#2-uqifcvgo, Client29], Client3#2=[Client3#2, Client3#2-ufjacyco, Client3], Client4#2=[Client4#2, Client4#2-vndnbbbt, Client4], Client6#2=[Client6#2, Client6#2-gmnbwari, Client6]}
+log=[LogEntry [term=1, command=AddOperation [recipe=[Client6#2, Client6#2-gmnbwari, Client6], timestamp=Client6#2]], LogEntry [term=1, command=AddOperation [recipe=[Client4#2, Client4#2-vndnbbbt, Client4], timestamp=Client4#2]], LogEntry [term=1, command=AddOperation [recipe=[Client27#2, Client27#2-sghibkwk, Client27], timestamp=Client27#2]], LogEntry [term=1, command=AddOperation [recipe=[Client13#2, Client13#2-cmfkbrdx, Client13], timestamp=Client13#2]], LogEntry [term=1, command=AddOperation [recipe=[Client15#2, Client15#2-ukbcnobk, Client15], timestamp=Client15#2]], LogEntry [term=2, command=AddOperation [recipe=[Client22#2, Client22#2-wgpoacyk, Client22], timestamp=Client22#2]], LogEntry [term=2, command=AddOperation [recipe=[Client20#2, Client20#2-babcmruo, Client20], timestamp=Client20#2]], LogEntry [term=2, command=AddOperation [recipe=[Client3#2, Client3#2-ufjacyco, Client3], timestamp=Client3#2]], LogEntry [term=2, command=AddOperation [recipe=[Client29#2, Client29#2-uqifcvgo, Client29], timestamp=Client29#2]]]
+term=3
+leaderId=group10@192.168.1.35:92716:496]
 
 
 
@@ -262,14 +287,9 @@ phase 3	Correct
 
 
 
-*********** num received results: 5
-*********** % received results: 100
+*********** num received results: 4
+*********** % received results: 80
 *********** minimal required number of results: 3
 
 
 
-Server group10@192.168.1.35:30196:96766 Ends Execution
-Server group10@192.168.1.35:30151:-35724 Ends Execution
-Server group10@192.168.1.35:30249:-3693 Ends Execution
-Server group10@192.168.1.35:30348:-33903 Ends Execution
-Server group10@192.168.1.35:30299:-25195 Ends Execution

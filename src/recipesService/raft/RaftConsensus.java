@@ -41,6 +41,7 @@ import recipesService.data.AddOperation;
 import recipesService.data.Operation;
 import recipesService.data.Recipe;
 import recipesService.data.RemoveOperation;
+import recipesService.data.Timestamp;
 import recipesService.raft.dataStructures.Index;
 import recipesService.raft.dataStructures.LogEntry;
 import recipesService.raft.dataStructures.PersistentState;
@@ -124,11 +125,12 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 	// UTILS
 	//
 
-	Executor executorQueue;
+	private Executor executorQueue;
 	private Timer requestVoteRetryTimeoutTimer;
 	private Timer appendEntriesRetryTimeoutTimer;
 	// AtomicBoolean isleaderAlive;
 	static Random rnd = new Random();
+	private Vector<Timestamp> operationTimestamps;
 
 	// =======================
 	// === IMPLEMENTATION
@@ -170,6 +172,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 		// monotonically)
 		commitIndex = 0;
 		lastApplied = 0;
+		operationTimestamps = new Vector<Timestamp>();
 	}
 
 	// connect
@@ -419,7 +422,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 				final int currCommitIndex;
 				final int auxNextIndex;
 				final int currLastLogIndex;
-				
+
 				synchronized (rc) {
 					auxNextIndex = nextIndex.getIndex(s.getId());
 					currentTerm = persistentState.getCurrentTerm();
@@ -533,42 +536,51 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 			}
 		}, 0);
 	}
-	
+
 	private void tryToUpdateCommitIndex() {
 		int i = 0;
 		int n;
 		for (LogEntry entry : persistentState.getLogEntries(commitIndex + 1)) {
 			n = commitIndex + 1 + i;
-			if ( myMajorityHigherOrEqual(n) && entry.getTerm() == persistentState.getCurrentTerm()) {
+			if (myMajorityHigherOrEqual(n) && entry.getTerm() == persistentState.getCurrentTerm()) {
 				commitIndex = n;
 			}
 			i++;
 		}
 		tryToApplyNewEntriesToStateMachine();
 	}
-	
+
 	private void tryToApplyNewEntriesToStateMachine() {
 		while (commitIndex > lastApplied) {
 			lastApplied++;
 			LogEntry entry = persistentState.getLogEntry(lastApplied);
-			
+			Timestamp ts = entry.getCommand().getTimestamp();
+
 			if (entry.getCommand() instanceof AddOperation) {
-				addRecipe(((AddOperation)entry.getCommand()).getRecipe());
+				Recipe recipe = ((AddOperation) entry.getCommand()).getRecipe();
+				if (!operationTimestamps.contains(ts)) {
+					addRecipe(recipe);
+					operationTimestamps.add(ts);
+				}
 			} else {
-				removeRecipe(((RemoveOperation)entry.getCommand()).getRecipeTitle());
+				String recipeTitle = ((RemoveOperation) entry.getCommand()).getRecipeTitle();
+				if (!operationTimestamps.contains(ts)) {
+					removeRecipe(recipeTitle);
+					operationTimestamps.add(ts);
+				}
 			}
 		}
 	}
-	
-	private boolean myMajorityHigherOrEqual(int n){
+
+	private boolean myMajorityHigherOrEqual(int n) {
 		int count = 1;
-		for (Host server : otherServers){
+		for (Host server : otherServers) {
 			int val = matchIndex.getIndex(server.getId());
-			if (val >= n){
+			if (val >= n) {
 				count++;
 			}
 		}
-		return (count >= (numServers/2 +1));
+		return (count >= (numServers / 2 + 1));
 	}
 
 	//
@@ -656,7 +668,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 			aer = new AppendEntriesResponse(currentTerm, false);
 			synchronized (this) {
 				setFollowerState(term, leaderId);
-				
+
 				if (leaderCommit > currentCommitIndex) {
 					commitIndex = (leaderCommit < lastLogIndex) ? leaderCommit : lastLogIndex;
 					tryToApplyNewEntriesToStateMachine();
@@ -698,6 +710,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 		// "} - localhost: " + localHost.getId() + ", isLeader: "
 		// + (state == RaftState.LEADER));
 
+		RequestResponse rr;
 		synchronized (this) {
 			if (state == RaftState.LEADER) {
 				// System.out.println("JORDI - Request: {" +
@@ -706,12 +719,14 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 				// Send AppendEntries RPC to all servers
 				persistentState.addEntry(operation);
 				sendNewEntries();
+				rr = new RequestResponse(leader, true);
 			} else {
 				// Redirect to leader
+				rr = new RequestResponse(leader, false);
 			}
 		}
 
-		return null;
+		return rr;
 	}
 
 	/*
