@@ -39,6 +39,7 @@ import recipesService.activitySimulation.ActivitySimulation;
 import recipesService.communication.Host;
 import recipesService.data.AddOperation;
 import recipesService.data.Operation;
+import recipesService.data.Recipe;
 import recipesService.data.RemoveOperation;
 import recipesService.raft.dataStructures.Index;
 import recipesService.raft.dataStructures.LogEntry;
@@ -543,6 +544,20 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 			}
 			i++;
 		}
+		tryToApplyNewEntriesToStateMachine();
+	}
+	
+	private void tryToApplyNewEntriesToStateMachine() {
+		while (commitIndex > lastApplied) {
+			lastApplied++;
+			LogEntry entry = persistentState.getLogEntry(lastApplied);
+			
+			if (entry.getCommand() instanceof AddOperation) {
+				addRecipe(((AddOperation)entry.getCommand()).getRecipe());
+			} else {
+				removeRecipe(((RemoveOperation)entry.getCommand()).getRecipeTitle());
+			}
+		}
 	}
 	
 	private boolean myMajorityHigherOrEqual(int n){
@@ -553,7 +568,6 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 				count++;
 			}
 		}
-		
 		return (count >= (numServers/2 +1));
 	}
 
@@ -634,6 +648,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 
 				if (leaderCommit > currentCommitIndex) {
 					commitIndex = (leaderCommit < lastLogIndex) ? leaderCommit : lastLogIndex;
+					tryToApplyNewEntriesToStateMachine();
 				}
 			}
 
@@ -641,6 +656,11 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 			aer = new AppendEntriesResponse(currentTerm, false);
 			synchronized (this) {
 				setFollowerState(term, leaderId);
+				
+				if (leaderCommit > currentCommitIndex) {
+					commitIndex = (leaderCommit < lastLogIndex) ? leaderCommit : lastLogIndex;
+					tryToApplyNewEntriesToStateMachine();
+				}
 			}
 		} else {
 			aer = new AppendEntriesResponse(currentTerm, true);
@@ -661,6 +681,7 @@ public abstract class RaftConsensus extends CookingRecipes implements Raft {
 				}
 				if (leaderCommit > currentCommitIndex) {
 					commitIndex = (leaderCommit < lastLogIndex) ? leaderCommit : lastLogIndex;
+					tryToApplyNewEntriesToStateMachine();
 				}
 			}
 		}
