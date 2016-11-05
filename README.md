@@ -6,5 +6,6 @@ Raft Consensus Algorithm
 
 
 For more information:
+  - https://raft.github.io/
   - http://www.youtube.com/watch?v=YbZ3zDzDnrw
   - https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
